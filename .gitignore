@@ -1,7 +1,13 @@
-node_modules/
+# Ignore environment variables
 .env
-dist/
-*.log
+
+# Ignore build output
 .vscode/
+bin/
+dist/
+node_modules/
+*.log
+
+# Ignore OS system files
 .DS_Store
 Thumbs.db

@@ -1,0 +1,19 @@
+# NOTICE
+
+This project includes the following dependencies, each with their respective licenses:
+
+## TypeScript
+- **License**: Apache License 2.0
+- **Details**: TypeScript is licensed under the Apache License 2.0. For more information, visit [TypeScript License](https://github.com/microsoft/TypeScript/blob/main/LICENSE.txt).
+
+## Node.js
+- **License**: MIT License
+- **Details**: Node.js is licensed under the MIT License. For more information, visit [Node.js License](https://github.com/nodejs/node/blob/main/LICENSE).
+
+## Better-SQLite3
+- **License**: MIT License
+- **Details**: Better-SQLite3 is licensed under the MIT License. For more information, visit [Better-SQLite3 License](https://github.com/WiseLibs/better-sqlite3/blob/master/LICENSE).
+
+---
+
+This project itself is licensed under the Apache License 2.0. See the `LICENSE` file for details.

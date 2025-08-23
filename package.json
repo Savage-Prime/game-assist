@@ -1,0 +1,41 @@
+{
+  "name": "game-assist",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "bot.js",
+  "engines": {
+    "node": ">=22.x"
+  },
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Savage-Prime/game-assist.git"
+  },
+  "keywords": [],
+  "author": "Savage Prime",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Savage-Prime/game-assist/issues"
+  },
+  "homepage": "https://github.com/Savage-Prime/game-assist#readme",
+  "description": "Savage Prime Game Assist Discord Bot",
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.2.0",
+    "discord.js": "^14.22.1",
+    "discord-interactions": "^4.0.0",
+    "dotenv": "^17.2.1",
+    "tsx": "^4.19.2",
+    "undici": "^7.15.0",
+    "zod": "^4.1.0"
+  }
+}
