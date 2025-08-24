@@ -1,5 +1,14 @@
 import { Client, GatewayIntentBits, Events } from "discord.js";
 import { config } from "dotenv";
+import {
+  ButtonStyleTypes,
+  InteractionResponseFlags,
+  InteractionResponseType,
+  InteractionType,
+  MessageComponentTypes,
+  verifyKeyMiddleware,
+} from 'discord-interactions';
+
 
 // load .env file with DISCORD_TOKEN and CLIENT_ID
 config();
