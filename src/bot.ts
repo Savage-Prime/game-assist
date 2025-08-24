@@ -1,48 +1,88 @@
-import { Client, GatewayIntentBits, Events } from "discord.js";
-import { config } from "dotenv";
-import {
-  ButtonStyleTypes,
-  InteractionResponseFlags,
-  InteractionResponseType,
-  InteractionType,
-  MessageComponentTypes,
-  verifyKeyMiddleware,
-} from 'discord-interactions';
+import "dotenv/config";
+import { log } from "./utils/diags.js";
+import { GetDiscordEnv } from "./utils/env.js";
+import { Client, Events, GatewayIntentBits } from "discord.js";
+import type { Interaction } from "discord.js";
+import { slashCommands } from "./commands/index.js";
 
-
-// load .env file with DISCORD_TOKEN and CLIENT_ID
-config();
-
-const discordToken = process.env["DISCORD_TOKEN"];
-const clientId = process.env["CLIENT_ID"];
-
-if (!discordToken || !clientId) {
-  throw new Error("Missing DISCORD_TOKEN or CLIENT_ID in environment");
-}
+const { token: discordToken, appId: appId } = GetDiscordEnv();
 
 // gateway listens for slash commands
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds],
-});
+const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // Register event when bot comes online
 client.once(Events.ClientReady, (c) => {
-  console.log(`✅ Logged in as ${c.user.tag}`);
+	log.info("Gateway connected", { user: c.user.tag, appId: appId });
 });
 
 // Handle interactions (slash commands)
-client.on(Events.InteractionCreate, async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
+client.on(Events.InteractionCreate, async (interaction: Interaction) => {
+	if (!interaction.isChatInputCommand()) return;
 
-  if (interaction.commandName === "ping") {
-    await interaction.reply("Pong!");
-  }
+	const cmd = slashCommands[interaction.commandName];
+	if (!cmd) {
+		// Can happen if your deployed commands are out of sync with the running image
+		await interaction.reply({ content: "Unknown command.", ephemeral: true }).catch(() => {});
+		log.warn("[slash] unknown", { commandName: interaction.commandName });
+		return;
+	}
 
-  if (interaction.commandName === "roll") {
-    const roll = Math.floor(Math.random() * 6) + 1;
-    await interaction.reply(`🎲 You rolled a **${roll}**`);
-  }
+	try {
+		await cmd.execute(interaction);
+	} catch (err) {
+		log.error("[slash] failed", { commandName: interaction.commandName, err: String(err) });
+		if (interaction.deferred || interaction.replied) {
+			await interaction.followUp({ content: "Error executing command.", ephemeral: true }).catch(() => {});
+		} else {
+			await interaction.reply({ content: "Error executing command.", ephemeral: true }).catch(() => {});
+		}
+	}
 });
 
-// Login with token
-client.login(discordToken);
+// Optional lightweight health probe
+const healthPort = process.env["HEALTH_PORT"];
+if (healthPort) {
+	// Use Node’s built-in http, keep it tiny and dependency-free
+	const http = await import("node:http");
+	http.createServer((_req, res) => {
+		res.writeHead(200, { "Content-Type": "text/plain" });
+		res.end("OK");
+	}).listen(Number(healthPort), () => {
+		log.info("Health check server listening", { port: healthPort });
+	});
+}
+
+// Hardening: surface unhandled errors in logs (don’t crash the process if avoidable)
+process.on("unhandledRejection", (reason) => {
+	log.error("unhandledRejection", { reason: String(reason) });
+});
+process.on("uncaughtException", (err) => {
+	log.error("uncaughtException", { err: String(err) });
+});
+
+// Graceful shutdown for containers / orchestrators
+let shuttingDown = false;
+async function shutdown(signal: string) {
+	if (shuttingDown) return;
+	shuttingDown = true;
+	log.info("Shutting down", { signal });
+
+	try {
+		// Destroy the gateway connection
+		client.destroy();
+	} catch (err) {
+		log.warn("client.destroy error", { err: String(err) });
+	} finally {
+		process.exit(0);
+	}
+}
+
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
+
+// Go
+client.login(discordToken).catch((err) => {
+	log.error("Login failed", { err: String(err) });
+	// Fail fast if we can’t log in—container will restart
+	process.exit(1);
+});
