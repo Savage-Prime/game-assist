@@ -1,47 +1,63 @@
 import "dotenv/config";
 import { log } from "../utils/diags.js";
 import { GetDiscordEnv } from "../utils/env.js";
-import { REST, Routes, type RESTPostAPIChatInputApplicationCommandsJSONBody } from "discord.js";
+import { REST, Routes } from "discord.js";
+import VerifyCommands from "../utils/verify.js";
 import { slashCommands } from "../commands/index.js";
 
-try {
-	if (!Array.isArray(slashCommands) || slashCommands.some((c) => !c.name || !c.description)) {
-		throw new Error("Invalid commands: Each command must have a name and description.");
+// --- arg parsing (no deps)
+const args = new Set(process.argv.slice(2));
+const getArg = (key: string) => {
+	const idx = process.argv.findIndex((a) => a === key);
+	return idx >= 0 ? process.argv[idx + 1] : undefined;
+};
+const dryRun = args.has("--dry-run");
+const argGuildId = getArg("--guild-id");
+
+// --- run
+async function main() {
+	// --- verify commands
+	const { errors, warnings } = VerifyCommands(slashCommands);
+	if (warnings.length) {
+		log.warn("Command validation warnings", { warnings });
+	}
+	if (errors.length) {
+		log.error("Command validation errors", { errors });
+		throw new Error("Command validation failed");
 	}
 
-	const { token: discordToken, appId: appId, guildId: guildId } = GetDiscordEnv();
+	const { token: discordToken, appId: appId, guildId: envGuildId } = GetDiscordEnv();
+	const guildId = argGuildId ?? envGuildId;
+
+	// prepare body
+	const body = Object.values(slashCommands).map((c) => c.data.toJSON());
 
 	const rest = new REST({ version: "10" }).setToken(discordToken);
-	const dryRun = process.argv.includes("--dry");
 
-	(async () => {
-		// build the JSON bodies from SlashCommandBuilder instances
-		const body: RESTPostAPIChatInputApplicationCommandsJSONBody[] = Object.values(slashCommands).map((c) =>
-			c.data.toJSON(),
-		);
-
-		if (dryRun) {
-			log.info("DRY RUN — these commands would be deployed", {
-				commands: body.map((c) => ({ name: c.name, description: c.description })),
-			});
-		} else {
-			try {
-				if (guildId) {
-					// instant updates when testing in your dev server
-					log.info("Deploying commands to guild", { guildId });
-					const res = await rest.put(Routes.applicationGuildCommands(appId, guildId), { body });
-					log.info("Deployed public commands to guild", { count: (res as any[]).length, guildId });
-				} else {
-					// global deploy (may take up to an hour to propagate)
-					log.info("Deploying global commands");
-					const res = await rest.put(Routes.applicationCommands(appId), { body });
-					log.info("Deployed global commands", { count: (res as any[]).length });
-				}
-			} catch (err) {
-				log.error("Deployment failed", { err: String(err) });
+	if (dryRun) {
+		log.info("DRY RUN — these commands would be deployed", {
+			commands: body.map((c) => ({ name: c.name, description: c.description })),
+		});
+	} else {
+		try {
+			if (guildId) {
+				// instant updates when testing in your dev server
+				log.info("Deploying commands to guild", { guildId });
+				const res = await rest.put(Routes.applicationGuildCommands(appId, guildId), { body });
+				log.info("Deployed public commands to guild", { count: (res as any[]).length, guildId });
+			} else {
+				// global deploy (may take up to an hour to propagate)
+				log.info("Deploying *GLOBAL* commands");
+				const res = await rest.put(Routes.applicationCommands(appId), { body });
+				log.info("Deployed *GLOBAL* commands", { count: (res as any[]).length });
 			}
+		} catch (err) {
+			log.error("Deployment failed", { err: String(err) });
 		}
-	})();
-} catch (err) {
-	log.error("Fatal error", { err: String(err) });
+	}
 }
+
+main().catch((err) => {
+	log.error("Failed to deploy commands", { err: String(err) });
+	process.exit(1);
+});

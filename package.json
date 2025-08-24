@@ -7,11 +7,14 @@
     "node": ">=22.x"
   },
   "scripts": {
-    "start": "ts-node src/index.ts",
+    "start": "node bin/bot.js",
     "build": "tsc",
     "test": "vitest",
-    "test:run": "vitest run",
-    "build-and-test": "npm run build && npm run test:run"
+    "test-run": "vitest run",
+    "build-and-test": "npm run build && npm run test-run",
+    "dry-run": "tsx src/scripts/deploy-api.ts --dry-run",
+    "guild-run": "tsx src/scripts/deploy-api.ts --guild-id 1409236103847743520",
+    "global-run": "tsx src/scripts/deploy-api.ts"
   },
   "repository": {
     "type": "git",
@@ -27,8 +30,10 @@
   "description": "Savage Prime Game Assist Discord Bot",
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "dotenv": "^17.2.1",
     "prettier": "3.6.2",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   },
@@ -36,11 +41,9 @@
     "better-sqlite3": "^12.2.0",
     "discord-interactions": "^4.3.0",
     "discord.js": "^14.22.1",
-    "dotenv": "^17.2.1",
     "firebase-admin": "^13.4.0",
     "firebase-functions": "^6.4.0",
-    "tsx": "^4.19.2",
     "undici": "^7.15.0",
-    "zod": "^4.1.0"
+    "zod": "^4.1.1"
   }
 }
