@@ -9,7 +9,9 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "build-and-test": "npm run build && npm run test:run"
   },
   "repository": {
     "type": "git",
@@ -25,6 +27,7 @@
   "description": "Savage Prime Game Assist Discord Bot",
   "devDependencies": {
     "@types/node": "^24.3.0",
+    "prettier": "3.6.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
@@ -34,6 +37,8 @@
     "discord-interactions": "^4.3.0",
     "discord.js": "^14.22.1",
     "dotenv": "^17.2.1",
+    "firebase-admin": "^13.4.0",
+    "firebase-functions": "^6.4.0",
     "tsx": "^4.19.2",
     "undici": "^7.15.0",
     "zod": "^4.1.0"
