@@ -11,5 +11,9 @@ npm install
 npm install discord.js dotenv undici
 npm install --save-dev vitest ts-node @types/node
 
+# Update Firebase packages
+npm install firebase-functions@latest firebase-admin@latest --save
+npm install -g firebase-tools
+
 # Display outdated packages (optional)
 npm outdated
