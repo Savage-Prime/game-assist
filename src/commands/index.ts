@@ -10,4 +10,19 @@ export type SlashCommand = {
 	execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 };
 
-export const slashCommands: Record<string, SlashCommand> = { [ping.data.name]: ping, [roll.data.name]: roll };
+// keep a list for deployment
+export const slashCommandList: SlashCommand[] = [ping, roll];
+
+// build the name→command map safely
+export const slashCommands: Record<string, SlashCommand> = Object.fromEntries(
+	slashCommandList.map((c, i) => {
+		if (!c?.data || typeof (c.data as any)?.toJSON !== "function") {
+			throw new Error(`Invalid command at index ${i}: missing data SlashCommandBuilder`);
+		}
+		const j = c.data.toJSON() as { name?: string; description?: string };
+		if (!j.name || !j.description) {
+			throw new Error(`Invalid command at index ${i}: name/description missing`);
+		}
+		return [j.name, c] as const;
+	}),
+);

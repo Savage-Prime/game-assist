@@ -2,10 +2,14 @@ import assert from "assert";
 import { describe, it, expect } from "vitest";
 import { randomInt, randomSequence } from "./utils/rng.js";
 
-for (let i = 0; i < 1000; i++) {
-	const x = randomInt(2, 20);
-	assert(x >= 2 && x <= 20, "randomInt out of range");
-}
+describe("randomInt stress test", () => {
+	it("generates values within range across 1K iterations", () => {
+		for (let i = 0; i < 1000; i++) {
+			const x = randomInt(2, 20);
+			assert(x >= 2 && x <= 20, "randomInt out of range");
+		}
+	});
+});
 
 describe("randomInt", () => {
 	it("should return a number within the specified range", () => {

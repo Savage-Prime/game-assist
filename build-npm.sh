@@ -9,7 +9,7 @@ npm install
 
 # Install specific packages (if needed)
 npm install discord.js dotenv undici
-npm install --save-dev vitest ts-node @types/node
+npm install --save-dev vitest ts-node tsx @types/node
 
 # Display outdated packages (optional)
 npm outdated

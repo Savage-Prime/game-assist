@@ -54,10 +54,11 @@ if (healthPort) {
 
 // Hardening: surface unhandled errors in logs (don’t crash the process if avoidable)
 process.on("unhandledRejection", (reason) => {
-	log.error("unhandledRejection", { reason: String(reason) });
+	const msg = reason instanceof Error ? reason.stack || reason.message : String(reason);
+	log.error("unhandledRejection", { reason: msg });
 });
 process.on("uncaughtException", (err) => {
-	log.error("uncaughtException", { err: String(err) });
+	log.error("uncaughtException", { err: err.stack || err.message || String(err) });
 });
 
 // Graceful shutdown for containers / orchestrators
@@ -73,16 +74,16 @@ async function shutdown(signal: string) {
 	} catch (err) {
 		log.warn("client.destroy error", { err: String(err) });
 	} finally {
-		process.exit(0);
+		setTimeout(() => process.exit(0), 100); // let logs flush
 	}
 }
 
-process.on("SIGTERM", () => void shutdown("SIGTERM"));
-process.on("SIGINT", () => void shutdown("SIGINT"));
+process.once("SIGTERM", () => void shutdown("SIGTERM"));
+process.once("SIGINT", () => void shutdown("SIGINT"));
 
 // Go
 client.login(discordToken).catch((err) => {
-	log.error("Login failed", { err: String(err) });
+	log.error("Login failed", { err: err.stack || String(err) });
 	// Fail fast if we can’t log in—container will restart
 	process.exit(1);
 });
