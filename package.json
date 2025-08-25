@@ -38,11 +38,8 @@
     "vitest": "^3.2.4"
   },
   "dependencies": {
-    "better-sqlite3": "^12.2.0",
     "discord-interactions": "^4.3.0",
     "discord.js": "^14.22.1",
-    "firebase-admin": "^13.4.0",
-    "firebase-functions": "^6.4.0",
     "undici": "^7.15.0",
     "zod": "^4.1.1"
   }
