@@ -1,8 +1,10 @@
-import type { SlashCommandBuilder } from "discord.js";
+import type { SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
 
 type JCmd = { name?: string; description?: string; options?: any[] };
 
-export default function VerifyCommands(commands: Record<string, { data: SlashCommandBuilder }>) {
+export default function VerifyCommands(
+	commands: Record<string, { data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder }>,
+) {
 	const errors: [string, string][] = [];
 	const addError = (key: string, message: string) => errors.push([key, message]);
 	const warnings: [string, string][] = [];
