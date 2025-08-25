@@ -2,11 +2,11 @@
 .env
 
 # Ignore build output
+*.log
 .vscode/
 bin/
 dist/
 node_modules/
-*.log
 
 # Ignore OS system files
 .DS_Store
