@@ -20,8 +20,8 @@ Bulk overwriting commands (guild or global)
 Cleaner abstraction
 Instead of scattering fetch calls all over, you centralize them here with consistent headers, logging, and error handling.
 */
-import "dotenv/config";
 import { log } from "./diags.js";
+import { GetRequiredEnv } from "./env.js";
 
 interface DiscordRequestOptions {
 	method: string;
@@ -39,7 +39,7 @@ export async function DiscordRequest(endpoint: string, options: DiscordRequestOp
 	// original User-Agent: DiscordBot (https://github.com/discord/discord-example-app, 1.0.0)
 	const res = await fetch(url, {
 		headers: {
-			Authorization: `Bot ${process.env["DISCORD_TOKEN"]}`,
+			Authorization: `Bot ${GetRequiredEnv("DISCORD_TOKEN")}`,
 			"Content-Type": "application/json; charset=UTF-8",
 			"User-Agent": "DiscordBot (SPGA)",
 		},
