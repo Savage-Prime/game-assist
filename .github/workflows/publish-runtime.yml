@@ -1,0 +1,51 @@
+name: publish-runtime
+on:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm' }
+
+      # Install dev deps to build TS → JS
+      - run: npm ci
+      - run: npm run build
+
+      # Stage only what prod needs
+      - name: Prepare runtime payload
+        run: |
+          rm -rf publish
+          mkdir -p publish
+          # required for prod install + lockfile integrity
+          cp package.json publish/
+          cp package-lock.json publish/ || true
+          # compiled JS
+          cp -r bin publish/
+          # include any assets your bot loads at runtime (if any)
+          # cp -r assets publish/  # <- example
+
+          # (optional) strip devDependencies in the published package.json
+          node -e "const fs=require('fs');const p=require('./publish/package.json');delete p.devDependencies;fs.writeFileSync('./publish/package.json', JSON.stringify(p,null,2));"
+
+      # Commit to runtime branch
+      - name: Publish to runtime branch
+        run: |
+          cd publish
+          git init
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git checkout -B runtime
+          git add .
+          git commit -m "runtime: build from ${GITHUB_SHA}"
+          git push -f origin runtime
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
