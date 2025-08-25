@@ -1,12 +1,12 @@
 // For help with commands, interactions, and response/request payloads:
 // https://discord.com/developers/docs/interactions/receiving-and-responding
 
-import type { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import type { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
 import ping from "./ping.js";
 import roll from "./roll.js";
 
 export type SlashCommand = {
-	data: SlashCommandBuilder;
+	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
 	execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 };
 

@@ -6,5 +6,6 @@ export default defineConfig({
 		include: ["src/**/*.spec.ts", "src/**/*.test.ts", "test/**/*.ts", "src/**/*.test.ts"],
 		environment: "node",
 		globals: true,
+		watch: false, // Don't watch for file changes by default
 	},
 });
