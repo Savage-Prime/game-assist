@@ -1,3 +1,8 @@
+// Load dotenv only in development
+if (process.env["NODE_ENV"] !== "production") {
+	await import("dotenv/config");
+}
+
 export function GetEnv(name: string, defaultValue?: string): string | undefined {
 	const v = process.env[name];
 	return v !== undefined ? v : defaultValue;

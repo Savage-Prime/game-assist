@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { log } from "./utils/diags.js";
 import { GetDiscordEnv } from "./utils/env.js";
 import { Client, Events, GatewayIntentBits } from "discord.js";
