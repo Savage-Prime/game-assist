@@ -101,21 +101,20 @@ export function formatRollResult(result: FullRollResult): string {
 		expressionLines.push(line);
 	}
 
-	// Join all expression lines with quote block formatting
+	// Join all expression lines with reversed formatting
 	let response = "";
 
-	// Add emoji and raw expression if available
+	// Add quoted raw expression with emoji if available (dimmed)
 	if (result.rawExpression) {
-		response += `🎲*${result.rawExpression}*\n`;
+		response += `> 🎲 *${result.rawExpression}*\n`;
 	}
 
-	// Add results with quote block formatting
-	const formattedLines = expressionLines.map((line) => `> ${line}`);
-	response += formattedLines.join("\n");
+	// Add results without quote formatting (bright)
+	response += expressionLines.join("\n");
 
 	// Add critical failure notice if any expression had one
 	if (hasCriticalFailure) {
-		response += "\n> ❗**CRITICAL FAILURE**";
+		response += "\n❗**CRITICAL FAILURE**";
 	}
 
 	return response;
