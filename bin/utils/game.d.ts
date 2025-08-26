@@ -56,6 +56,7 @@ export declare function rollExpression(expression: {
     }>;
 }): Promise<ExpressionResult>;
 export declare function isCriticalFailure(expressionResult: ExpressionResult): boolean;
+export declare function isFullRollCriticalFailure(fullResult: FullRollResult): boolean;
 export declare function rollParsedExpression(parsed: ParsedRollExpression): Promise<FullRollResult>;
 export declare function rollDice(quantity: number, sides: number, exploding: boolean, explodingNumber: number, infinite: boolean, rolls: [number, boolean][]): number;
 //# sourceMappingURL=game.d.ts.map

@@ -298,6 +298,31 @@ export function isCriticalFailure(expressionResult) {
     // Critical failure only if we had active dice and none rolled > 1
     return hasAnyActiveDice;
 }
+export function isFullRollCriticalFailure(fullResult) {
+    // Check if ALL dice across ALL expressions rolled 1s (excluding dropped dice and pure number modifiers)
+    let hasAnyActiveDice = false;
+    for (const expr of fullResult.expressionResults) {
+        for (const { result: groupResult } of expr.diceGroupResults) {
+            // Skip pure number modifiers (quantity: 0)
+            if (groupResult.originalGroup.quantity === 0) {
+                continue;
+            }
+            // Check for any non-dropped dice that rolled > 1
+            const nonCriticalDice = groupResult.rolls.filter(([roll, , dropped]) => !dropped && roll > 1);
+            // If any dice rolled > 1, this is not a critical failure for the full roll
+            if (nonCriticalDice.length > 0) {
+                return false;
+            }
+            // Check if this group has any active dice at all
+            const activeDice = groupResult.rolls.filter(([, , dropped]) => !dropped);
+            if (activeDice.length > 0) {
+                hasAnyActiveDice = true;
+            }
+        }
+    }
+    // Critical failure only if we had active dice and ALL of them rolled 1s
+    return hasAnyActiveDice;
+}
 export async function rollParsedExpression(parsed) {
     const result = { expressionResults: [], grandTotal: 0 };
     // Add optional properties only if they exist
