@@ -62,7 +62,9 @@ jobs:
 
                   # make a worktree at ../rt from runtime (or create it)
                   if [ -n "${BASE}" ]; then
-                    git worktree add ../rt "${BASE}"
+                    # Create a local tracking branch and use it for the worktree
+                    git checkout -B runtime "${BASE}"
+                    git worktree add ../rt runtime
                   else
                     git worktree add -b runtime ../rt
                   fi
@@ -88,8 +90,11 @@ jobs:
                   if git diff --cached --quiet; then
                     echo "No changes to commit"
                   else
+                    # Show what we're building from for history tracking
+                    echo "Creating new runtime commit on top of $(git rev-parse --short HEAD)"
                     git commit -m "runtime: build from ${GITHUB_SHA}"
                     # ensure branch exists on origin; this is a regular push, not -f
+                    # This preserves the full commit history of the runtime branch
                     git push origin HEAD:runtime
                     echo "Successfully pushed runtime build"
                   fi
