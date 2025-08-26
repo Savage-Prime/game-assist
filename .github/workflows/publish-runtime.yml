@@ -49,71 +49,37 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  # fetch runtime branch (create if missing)
+                  # Store current commit for the commit message
+                  CURRENT_COMMIT="${GITHUB_SHA}"
+
+                  # Check if runtime branch exists
                   git fetch origin runtime || true
                   if git show-ref --verify --quiet refs/remotes/origin/runtime; then
-                    BASE="origin/runtime"
-                    echo "Runtime branch exists, using ${BASE}"
+                    echo "Runtime branch exists"
+                    # Switch to runtime branch
+                    git checkout -B runtime origin/runtime
                   else
-                    # first-time creation: base off empty tree
-                    BASE=""
-                    echo "Runtime branch doesn't exist, will create new branch"
+                    echo "Creating new runtime branch"
+                    # Create new orphan branch
+                    git checkout --orphan runtime
+                    git rm -rf .
                   fi
 
-                  # Only add a worktree if not already on the runtime branch
-                  if [ "$(git rev-parse --abbrev-ref HEAD)" = "runtime" ]; then
-                    TARGET_DIR="."
-                    echo "Already on runtime branch, working in place"
-                  else
-                    # Remove any previous worktree if exists
-                    git worktree prune
-                    # Add worktree for runtime branch
-                    if [ -n "${BASE}" ]; then
-                      git worktree add ../rt "${BASE}"
-                    else
-                      git worktree add -b runtime ../rt
-                    fi
-                    TARGET_DIR="../rt"
-                    echo "Created worktree at ${TARGET_DIR}"
-                  fi
+                  # Copy the build output to current directory
+                  cp -r publish/* .
 
-                  # replace contents with the build output
-                  rsync -a --delete publish/ $TARGET_DIR/
-
-                  # commit & push normally (no force)
-                  cd $TARGET_DIR
-
-                  # Verify we're in a proper git repository/worktree
-                  if ! git status &>/dev/null; then
-                    echo "Error: Not in a valid git repository. Debugging info:"
-                    pwd
-                    ls -la
-                    echo "Checking parent directory:"
-                    ls -la ..
-                    exit 1
-                  fi
+                  # Add and commit changes
                   git add -A
 
                   # Check if there are actually changes to commit
                   if git diff --cached --quiet; then
                     echo "No changes to commit"
                   else
-                    # Show what we're building from for history tracking
-                    echo "Creating new runtime commit on top of $(git rev-parse --short HEAD)"
-                    git commit -m "runtime: build from ${GITHUB_SHA}"
-                    # ensure branch exists on origin; this is a regular push, not -f
-                    # This preserves the full commit history of the runtime branch
-                    git push origin HEAD:runtime
+                    echo "Creating new runtime commit"
+                    git commit -m "runtime: build from ${CURRENT_COMMIT}"
+                    # Push to runtime branch
+                    git push origin runtime
                     echo "Successfully pushed runtime build"
-                  fi
-
-                  # cleanup worktree (only if we created one)
-                  if [ "$TARGET_DIR" = "../rt" ]; then
-                    cd ..
-                    git worktree remove rt
-                    echo "Cleaned up worktree"
-                  else
-                    echo "No worktree cleanup needed"
                   fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
