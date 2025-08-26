@@ -7,9 +7,9 @@ export default {
         .addStringOption((option) => option
         .setName("dice")
         .setDescription("Dice expression (e.g., 1d12+2d6+3, 1d4!!;1d6!! -2 tn4)")
-        .setRequired(false)),
+        .setRequired(true)),
     async execute(interaction) {
-        const diceInput = interaction.options.getString("dice") || "1d6";
+        const diceInput = interaction.options.getString("dice", true); // true makes it required
         // Parse the dice expression
         const parsed = parseRollExpression(diceInput);
         if (parsed.expressions.length === 0) {
@@ -17,6 +17,15 @@ export default {
             if (parsed.validationMessages.length > 0) {
                 errorMsg += `\n❌ Errors: ${parsed.validationMessages.join(", ")}`;
             }
+            // Add help information for invalid expressions
+            errorMsg += `\n\n**Help for /roll command:**\n`;
+            errorMsg += `Use dice expressions like:\n`;
+            errorMsg += `• \`1d20\` - Roll a 20-sided die\n`;
+            errorMsg += `• \`2d6+3\` - Roll two 6-sided dice and add 3\n`;
+            errorMsg += `• \`1d8!!\` - Roll a d8 with exploding dice\n`;
+            errorMsg += `• \`4d6kh3\` - Roll 4d6 and keep the highest 3\n`;
+            errorMsg += `• \`3d10 tn7\` - Roll 3d10 and count successes (7+)\n`;
+            errorMsg += `• \`1d6;1d8\` - Roll multiple expressions\n`;
             await interaction.reply(errorMsg);
             return;
         }
