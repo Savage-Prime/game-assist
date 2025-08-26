@@ -318,7 +318,7 @@ export async function rollParsedExpression(parsed) {
             expressionResult.state = ExpressionState.CriticalFailure;
         }
         else if (parsed.targetNumber !== undefined) {
-            if (modifiedTotal >= parsed.targetNumber * 2) {
+            if (modifiedTotal >= parsed.targetNumber + 4) {
                 expressionResult.state = ExpressionState.Raise;
             }
             else if (modifiedTotal >= parsed.targetNumber) {
