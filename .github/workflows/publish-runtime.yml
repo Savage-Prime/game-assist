@@ -68,6 +68,9 @@ jobs:
                   # Copy the build output to current directory
                   cp -r publish/* .
 
+                  # Ensure node_modules is not included in runtime branch
+                  rm -rf node_modules
+
                   # Add and commit changes
                   git add -A
 
