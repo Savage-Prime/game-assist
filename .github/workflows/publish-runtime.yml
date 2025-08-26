@@ -60,20 +60,28 @@ jobs:
                     echo "Runtime branch doesn't exist, will create new branch"
                   fi
 
-                  # make a worktree at ../rt from runtime (or create it)
-                  if [ -n "${BASE}" ]; then
-                    # Create a local tracking branch and use it for the worktree
-                    git checkout -B runtime "${BASE}"
-                    git worktree add ../rt runtime
+                  # Only add a worktree if not already on the runtime branch
+                  if [ "$(git rev-parse --abbrev-ref HEAD)" = "runtime" ]; then
+                    TARGET_DIR="."
+                    echo "Already on runtime branch, working in place"
                   else
-                    git worktree add -b runtime ../rt
+                    # Remove any previous worktree if exists
+                    git worktree prune
+                    # Add worktree for runtime branch
+                    if [ -n "${BASE}" ]; then
+                      git worktree add ../rt "${BASE}"
+                    else
+                      git worktree add -b runtime ../rt
+                    fi
+                    TARGET_DIR="../rt"
+                    echo "Created worktree at ${TARGET_DIR}"
                   fi
 
                   # replace contents with the build output
-                  rsync -a --delete publish/ ../rt/
+                  rsync -a --delete publish/ $TARGET_DIR/
 
                   # commit & push normally (no force)
-                  cd ../rt
+                  cd $TARGET_DIR
 
                   # Verify we're in a proper git repository/worktree
                   if ! git status &>/dev/null; then
@@ -99,8 +107,13 @@ jobs:
                     echo "Successfully pushed runtime build"
                   fi
 
-                  # cleanup worktree
-                  cd ..
-                  git worktree remove rt
+                  # cleanup worktree (only if we created one)
+                  if [ "$TARGET_DIR" = "../rt" ]; then
+                    cd ..
+                    git worktree remove rt
+                    echo "Cleaned up worktree"
+                  else
+                    echo "No worktree cleanup needed"
+                  fi
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
