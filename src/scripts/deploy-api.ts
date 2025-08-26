@@ -1,6 +1,6 @@
 import { log } from "../utils/diags.js";
 import { GetDiscordEnv } from "../utils/env.js";
-import { REST, Routes, type APIApplicationCommand } from "discord.js";
+import { REST, Routes } from "discord.js";
 import VerifyCommands from "../utils/verify.js";
 import { slashCommands } from "../commands/index.js";
 
@@ -11,11 +11,30 @@ const getArg = (key: string) => {
 	return idx >= 0 ? process.argv[idx + 1] : undefined;
 };
 const dryRun = args.has("--dry-run");
+const clearGuild = args.has("--clear-guild");
 const argGuildId = getArg("--guild-id");
 
 // --- run
 async function main() {
-	// --- verify commands
+	const { token: discordToken, appId: appId, guildId: envGuildId } = GetDiscordEnv();
+	const guildId = argGuildId ?? envGuildId;
+	const rest = new REST({ version: "10" }).setToken(discordToken);
+
+	// Handle clear guild commands case
+	if (clearGuild) {
+		if (!guildId) {
+			log.error("Guild ID is required for clearing guild commands");
+			log.info("Usage: npm run deploy -- --clear-guild --guild-id YOUR_GUILD_ID");
+			process.exit(1);
+		}
+
+		log.info("Clearing all guild commands", { guildId });
+		const res = await rest.put(Routes.applicationGuildCommands(appId, guildId), { body: [] });
+		log.info("Successfully cleared all guild commands", { guildId, clearedCount: (res as any[]).length });
+		return;
+	}
+
+	// --- verify commands (only if we're deploying, not clearing)
 	const { errors, warnings } = VerifyCommands(slashCommands);
 	if (warnings.length) {
 		log.warn("Command validation warnings", { warnings });
@@ -25,13 +44,8 @@ async function main() {
 		throw new Error("Command validation failed");
 	}
 
-	const { token: discordToken, appId: appId, guildId: envGuildId } = GetDiscordEnv();
-	const guildId = argGuildId ?? envGuildId;
-
 	// prepare body
 	const body = Object.values(slashCommands).map((c) => c.data.toJSON());
-
-	const rest = new REST({ version: "10" }).setToken(discordToken);
 
 	if (dryRun) {
 		log.info("DRY RUN — these commands would be deployed", {
@@ -45,13 +59,6 @@ async function main() {
 				const res = await rest.put(Routes.applicationGuildCommands(appId, guildId), { body });
 				log.info("Deployed public commands to guild", { count: (res as any[]).length, guildId });
 			} else {
-				const globalCmds = (await rest.get(Routes.applicationCommands(appId))) as APIApplicationCommand[];
-				const existingGlobal = globalCmds.find((c) => c.name === "roll");
-				if (existingGlobal) {
-					log.info("Deleting existing global command 'roll' with old definition", { id: existingGlobal.id });
-					await rest.delete(Routes.applicationCommand(appId, existingGlobal.id));
-				}
-
 				// global deploy (may take up to an hour to propagate)
 				log.info("Deploying *GLOBAL* commands");
 				const res = await rest.put(Routes.applicationCommands(appId), { body });
