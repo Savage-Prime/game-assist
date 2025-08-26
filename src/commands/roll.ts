@@ -44,7 +44,7 @@ export default {
 		}
 
 		// Roll the parsed expression
-		const result = await rollParsedExpression(parsed);
+		const result = await rollParsedExpression(parsed, diceInput);
 
 		// Format the result using the new formatting function
 		const response = formatRollResult(result);

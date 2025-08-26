@@ -46,6 +46,7 @@ export interface FullRollResult {
 	totalSuccesses?: number;
 	targetNumber?: number;
 	globalModifier?: number;
+	rawExpression?: string;
 }
 
 export function parseRollExpression(expression: string): ParsedRollExpression {
@@ -438,7 +439,10 @@ export function isFullRollCriticalFailure(fullResult: FullRollResult): boolean {
 	// Critical failure only if we had active dice and ALL of them rolled 1s
 	return hasAnyActiveDice;
 }
-export async function rollParsedExpression(parsed: ParsedRollExpression): Promise<FullRollResult> {
+export async function rollParsedExpression(
+	parsed: ParsedRollExpression,
+	rawExpression?: string,
+): Promise<FullRollResult> {
 	const result: FullRollResult = { expressionResults: [], grandTotal: 0 };
 
 	// Add optional properties only if they exist
@@ -447,6 +451,9 @@ export async function rollParsedExpression(parsed: ParsedRollExpression): Promis
 	}
 	if (parsed.globalModifier !== undefined) {
 		result.globalModifier = parsed.globalModifier;
+	}
+	if (rawExpression !== undefined) {
+		result.rawExpression = rawExpression;
 	}
 
 	// Roll all expressions in parallel
