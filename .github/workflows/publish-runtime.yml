@@ -74,6 +74,10 @@ jobs:
                   # Ensure node_modules is not included in runtime branch
                   rm -rf node_modules
 
+                  # Create/update .gitignore to exclude node_modules
+                  echo "node_modules/" > .gitignore
+                  echo "*.log" >> .gitignore
+
                   # Add and commit changes
                   git add -A
 
