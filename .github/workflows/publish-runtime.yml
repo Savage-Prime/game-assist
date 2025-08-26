@@ -52,6 +52,9 @@ jobs:
                   # Store current commit for the commit message
                   CURRENT_COMMIT="${GITHUB_SHA}"
 
+                  # Move publish directory out of the way temporarily
+                  mv publish ../publish-temp
+
                   # Check if runtime branch exists
                   git fetch origin runtime || true
                   if git show-ref --verify --quiet refs/remotes/origin/runtime; then
@@ -66,7 +69,7 @@ jobs:
                   fi
 
                   # Copy the build output to current directory
-                  cp -r publish/* .
+                  cp -r ../publish-temp/* .
 
                   # Ensure node_modules is not included in runtime branch
                   rm -rf node_modules
@@ -84,5 +87,9 @@ jobs:
                     git push origin runtime
                     echo "Successfully pushed runtime build"
                   fi
+
+                  # Cleanup temporary directory
+                  rm -rf ../publish-temp
+                  echo "Cleaned up temporary files"
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
