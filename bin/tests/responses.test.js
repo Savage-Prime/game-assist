@@ -24,7 +24,7 @@ describe("formatRollResult", () => {
                 grandTotal: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d6 [4] = **4**");
+            expect(result).toBe("1d6 [4] = **4**");
         });
         it("should format multiple dice in one expression", () => {
             const mockResult = {
@@ -50,7 +50,7 @@ describe("formatRollResult", () => {
                 grandTotal: 8,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 2d6 [3, 5] = **8**");
+            expect(result).toBe("2d6 [3, 5] = **8**");
         });
         it("should format dice with number modifier", () => {
             const mockResult = {
@@ -89,7 +89,7 @@ describe("formatRollResult", () => {
                 grandTotal: 12,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d12 + 1d4 [7, 2] + 3 = **12**");
+            expect(result).toBe("1d12 + 1d4 [7, 2] + 3 = **12**");
         });
         it("should format rolls with keep highest (showing all rolls)", () => {
             const mockResult = {
@@ -118,7 +118,7 @@ describe("formatRollResult", () => {
                 grandTotal: 15,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 5d6 [~~1~~, 6, 6, 3, ~~3~~] = **15**");
+            expect(result).toBe("5d6 [~~1~~, 6, 6, 3, ~~3~~] = **15**");
         });
         it("should format exploding dice", () => {
             const mockResult = {
@@ -141,7 +141,7 @@ describe("formatRollResult", () => {
                 grandTotal: 9,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d6 [9!] = **9**");
+            expect(result).toBe("1d6 [9!] = **9**");
         });
         it("should format multiple expressions without target number", () => {
             const mockResult = {
@@ -190,7 +190,7 @@ describe("formatRollResult", () => {
                 globalModifier: 1,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 2d6 + 1d4 [4, ~~2~~, 3] + 1 = **8**\n> 1d8 [5] + 1 = **6**");
+            expect(result).toBe("2d6 + 1d4 [4, ~~2~~, 3] + 1 = **8**\n1d8 [5] + 1 = **6**");
         });
     });
     describe("target number rolls", () => {
@@ -216,7 +216,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d8 [6] = **6** success");
+            expect(result).toBe("1d8 [6] = **6** success");
         });
         it("should format failed roll with target number", () => {
             const mockResult = {
@@ -240,7 +240,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d8 [3] = **3** failed");
+            expect(result).toBe("1d8 [3] = **3** failed");
         });
         it("should format raise with target number", () => {
             const mockResult = {
@@ -264,7 +264,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4, // 8 >= 4+4, so it's a raise
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d6 [8!] = **8** raise");
+            expect(result).toBe("1d6 [8!] = **8** raise");
         });
         it("should format multiple expressions with target number", () => {
             const mockResult = {
@@ -302,7 +302,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d8 [3] = **3** failed\n> 1d6 [5] = **5** success");
+            expect(result).toBe("1d8 [3] = **3** failed\n1d6 [5] = **5** success");
         });
     });
     describe("global modifiers", () => {
@@ -329,7 +329,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d4 [1] - 2 = **-1** failed\n> ❗**CRITICAL FAILURE**");
+            expect(result).toBe("1d4 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
         });
         it("should format positive global modifier", () => {
             const mockResult = {
@@ -353,7 +353,7 @@ describe("formatRollResult", () => {
                 globalModifier: 2,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d6 [3] + 2 = **5**");
+            expect(result).toBe("1d6 [3] + 2 = **5**");
         });
     });
     describe("critical failures", () => {
@@ -394,7 +394,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d4 [1] - 2 = **-1** failed\n> 1d6 [1] - 2 = **-1** failed\n> ❗**CRITICAL FAILURE**");
+            expect(result).toBe("1d4 [1] - 2 = **-1** failed\n1d6 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
         });
         it("should NOT show critical failure when only some dice roll 1s", () => {
             const mockResult = {
@@ -433,7 +433,7 @@ describe("formatRollResult", () => {
                 targetNumber: 4,
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("> 1d8 [1] + 2 = **3** failed\n> 1d6 [3] + 2 = **5** success");
+            expect(result).toBe("1d8 [1] + 2 = **3** failed\n1d6 [3] + 2 = **5** success");
         });
         it("should format with raw expression and emoji", () => {
             const mockResult = {
@@ -460,7 +460,7 @@ describe("formatRollResult", () => {
                 rawExpression: "2d6",
             };
             const result = formatRollResult(mockResult);
-            expect(result).toBe("🎲*2d6*\n> 2d6 [4, 5] = **9**");
+            expect(result).toBe("> 🎲 *2d6*\n2d6 [4, 5] = **9**");
         });
     });
 });
