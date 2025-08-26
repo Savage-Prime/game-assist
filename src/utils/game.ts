@@ -5,8 +5,8 @@ export enum ExpressionState {
 	NotApplicable = "not_applicable", // No target number set
 	CriticalFailure = "critical_failure", // All non-dropped dice rolled 1s
 	Failed = "failed", // < targetNumber
-	Success = "success", // >= targetNumber but < targetNumber * 2
-	Raise = "raise", // >= targetNumber * 2
+	Success = "success", // >= targetNumber but < targetNumber + 4
+	Raise = "raise", // >= targetNumber + 4
 }
 
 export interface DiceGroup {
@@ -430,7 +430,7 @@ export async function rollParsedExpression(parsed: ParsedRollExpression): Promis
 		if (isCriticalFailure(expressionResult)) {
 			expressionResult.state = ExpressionState.CriticalFailure;
 		} else if (parsed.targetNumber !== undefined) {
-			if (modifiedTotal >= parsed.targetNumber * 2) {
+			if (modifiedTotal >= parsed.targetNumber + 4) {
 				expressionResult.state = ExpressionState.Raise;
 			} else if (modifiedTotal >= parsed.targetNumber) {
 				expressionResult.state = ExpressionState.Success;
