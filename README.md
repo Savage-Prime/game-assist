@@ -60,8 +60,8 @@ npm start
 ### `/ping`
 Simple health check command that responds with "pong".
 
-### `/roll [dice]`
-Roll dice using advanced dice expressions. If no dice expression is provided, defaults to rolling 1d6.
+### `/roll <dice>`
+Roll dice using advanced dice expressions. The dice expression is required.
 
 ## Dice Expression Syntax
 
