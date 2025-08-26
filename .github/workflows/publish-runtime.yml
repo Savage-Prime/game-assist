@@ -35,6 +35,13 @@ jobs:
                   # (optional) strip devDependencies in the published package.json
                   node -e "const fs=require('fs');const p=require('./publish/package.json');delete p.devDependencies;fs.writeFileSync('./publish/package.json', JSON.stringify(p,null,2));"
 
+            - name: Ensure not in detached HEAD
+              run: |
+                  # If we're in detached HEAD, checkout main to get a branch context
+                  if [ "$(git symbolic-ref --short HEAD || echo detached)" = "detached" ]; then
+                    git checkout main
+                  fi
+
             # Commit to runtime branch
             - name: Publish to runtime branch
               run: |
@@ -65,6 +72,16 @@ jobs:
 
                   # commit & push normally (no force)
                   cd ../rt
+
+                  # Verify we're in a proper git repository/worktree
+                  if ! git status &>/dev/null; then
+                    echo "Error: Not in a valid git repository. Debugging info:"
+                    pwd
+                    ls -la
+                    echo "Checking parent directory:"
+                    ls -la ..
+                    exit 1
+                  fi
                   git add -A
 
                   # Check if there are actually changes to commit
