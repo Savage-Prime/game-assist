@@ -1,4 +1,4 @@
-import { ExpressionState, type FullRollResult } from "./game.js";
+import { ExpressionState, isFullRollCriticalFailure, type FullRollResult } from "./game.js";
 
 /**
  * Formats the result of a roll command using unified linear format
@@ -8,7 +8,7 @@ import { ExpressionState, type FullRollResult } from "./game.js";
  */
 export function formatRollResult(result: FullRollResult): string {
 	const isTargetNumber = result.targetNumber !== undefined;
-	let hasCriticalFailure = false;
+	const hasCriticalFailure = isFullRollCriticalFailure(result);
 
 	// Process each expression separately
 	const expressionLines: string[] = [];
@@ -16,11 +16,6 @@ export function formatRollResult(result: FullRollResult): string {
 	for (let i = 0; i < result.expressionResults.length; i++) {
 		const expr = result.expressionResults[i];
 		if (!expr) continue;
-
-		// Check for critical failure
-		if (expr.state === ExpressionState.CriticalFailure) {
-			hasCriticalFailure = true;
-		}
 
 		// Separate dice notation from modifiers
 		let diceNotation = "";

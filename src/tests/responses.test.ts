@@ -351,7 +351,7 @@ describe("formatRollResult", () => {
 			};
 
 			const result = formatRollResult(mockResult);
-			expect(result).toBe("1d4 [1] - 2 = **-1** failed");
+			expect(result).toBe("1d4 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
 		});
 
 		it("should format positive global modifier", () => {
@@ -421,6 +421,47 @@ describe("formatRollResult", () => {
 
 			const result = formatRollResult(mockResult);
 			expect(result).toBe("1d4 [1] - 2 = **-1** failed\n1d6 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
+		});
+
+		it("should NOT show critical failure when only some dice roll 1s", () => {
+			const mockResult: FullRollResult = {
+				expressionResults: [
+					{
+						diceGroupResults: [
+							{
+								result: {
+									originalGroup: { quantity: 1, sides: 8 },
+									rolls: [[1, false, false]], // rolled 1
+									total: 1,
+								},
+								operator: "+",
+							},
+						],
+						total: 1,
+						state: ExpressionState.Failed,
+					},
+					{
+						diceGroupResults: [
+							{
+								result: {
+									originalGroup: { quantity: 1, sides: 6 },
+									rolls: [[3, false, false]], // rolled 3 (NOT 1)
+									total: 3,
+								},
+								operator: "+",
+							},
+						],
+						total: 3,
+						state: ExpressionState.Success,
+					},
+				],
+				grandTotal: 6, // 1+2 + 3+2 = 6
+				globalModifier: 2,
+				targetNumber: 4,
+			};
+
+			const result = formatRollResult(mockResult);
+			expect(result).toBe("1d8 [1] + 2 = **3** failed\n1d6 [3] + 2 = **5** success");
 		});
 	});
 });
