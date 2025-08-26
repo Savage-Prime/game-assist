@@ -92,11 +92,18 @@ export function formatRollResult(result) {
         }
         expressionLines.push(line);
     }
-    // Join all expression lines
-    let response = expressionLines.join("\n");
+    // Join all expression lines with quote block formatting
+    let response = "";
+    // Add emoji and raw expression if available
+    if (result.rawExpression) {
+        response += `🎲*${result.rawExpression}*\n`;
+    }
+    // Add results with quote block formatting
+    const formattedLines = expressionLines.map((line) => `> ${line}`);
+    response += formattedLines.join("\n");
     // Add critical failure notice if any expression had one
     if (hasCriticalFailure) {
-        response += "\n❗**CRITICAL FAILURE**";
+        response += "\n> ❗**CRITICAL FAILURE**";
     }
     return response;
 }

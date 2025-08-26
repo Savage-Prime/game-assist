@@ -323,7 +323,7 @@ export function isFullRollCriticalFailure(fullResult) {
     // Critical failure only if we had active dice and ALL of them rolled 1s
     return hasAnyActiveDice;
 }
-export async function rollParsedExpression(parsed) {
+export async function rollParsedExpression(parsed, rawExpression) {
     const result = { expressionResults: [], grandTotal: 0 };
     // Add optional properties only if they exist
     if (parsed.targetNumber !== undefined) {
@@ -331,6 +331,9 @@ export async function rollParsedExpression(parsed) {
     }
     if (parsed.globalModifier !== undefined) {
         result.globalModifier = parsed.globalModifier;
+    }
+    if (rawExpression !== undefined) {
+        result.rawExpression = rawExpression;
     }
     // Roll all expressions in parallel
     const expressionResults = await Promise.all(parsed.expressions.map((expression) => rollExpression(expression)));

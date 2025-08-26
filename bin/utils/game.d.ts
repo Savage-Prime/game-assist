@@ -46,6 +46,7 @@ export interface FullRollResult {
     totalSuccesses?: number;
     targetNumber?: number;
     globalModifier?: number;
+    rawExpression?: string;
 }
 export declare function parseRollExpression(expression: string): ParsedRollExpression;
 export declare function rollDiceGroup(group: DiceGroup): DiceGroupResult;
@@ -57,6 +58,6 @@ export declare function rollExpression(expression: {
 }): Promise<ExpressionResult>;
 export declare function isCriticalFailure(expressionResult: ExpressionResult): boolean;
 export declare function isFullRollCriticalFailure(fullResult: FullRollResult): boolean;
-export declare function rollParsedExpression(parsed: ParsedRollExpression): Promise<FullRollResult>;
+export declare function rollParsedExpression(parsed: ParsedRollExpression, rawExpression?: string): Promise<FullRollResult>;
 export declare function rollDice(quantity: number, sides: number, exploding: boolean, explodingNumber: number, infinite: boolean, rolls: [number, boolean][]): number;
 //# sourceMappingURL=game.d.ts.map
