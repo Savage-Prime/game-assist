@@ -1,6 +1,6 @@
 import assert from "assert";
 import { describe, it, expect } from "vitest";
-import { randomInt, randomSequence } from "./utils/rng.js";
+import { randomInt, randomSequence } from "../utils/rng.js";
 
 describe("randomInt stress test", () => {
 	it("generates values within range across 1K iterations", () => {

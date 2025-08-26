@@ -102,22 +102,30 @@ The `/roll` command supports a powerful and flexible dice notation system:
 
 ```
 /roll 1d20+5
-→ 1d20: **18** [13] (rolled 13, +5 modifier = 18)
+→ 1d20 [13] + 5 = **18**
 
 /roll 2d6
-→ 2d6: **9** [4, 5]
+→ 2d6 [4, 5] = **9**
 
 /roll 1d6!!
-→ 1d6: **12** [6!, 6!] (rolled 6, exploded to 6 again, total 12)
+→ 1d6 [6!, 6!] = **12**
 
 /roll 4d6kh3
-→ 4d6kh3: **14** [~~2~~, 4, 5, 5] (dropped the 2, kept 4+5+5=14)
+→ 4d6 [~~2~~, 4, 5, 5] = **14**
 
-/roll 5d8 tn6
-→ 5d8: **22** [3, 6, 7, 2, 4] = **2** successes (6 and 7 ≥ 6)
+/roll 1d8 tn4
+→ 1d8 [6] = **6** success
 
 /roll 1d8+1d6+3
-→ 1d8+1d6+3: **12** (rolled 5+4+3)
+→ 1d8 + 1d6 [5, 4] + 3 = **12**
+
+/roll 1d8!!;1d6!! tn4
+→ 1d8 [3] = **3** failed
+→ 1d6 [9!] = **9** raise
+
+/roll 2d6+1d4;1d8 (+1)
+→ 2d6 + 1d4 [4, 3, 2] + 1 = **12**
+→ 1d8 [5] + 1 = **6**
 ```
 
 ## Development

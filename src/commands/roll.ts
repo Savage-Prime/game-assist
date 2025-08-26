@@ -1,5 +1,6 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
 import { rollParsedExpression, parseRollExpression } from "../utils/game.js";
+import { formatRollResult } from "../utils/responses.js";
 
 export default {
 	data: new SlashCommandBuilder()
@@ -45,46 +46,8 @@ export default {
 		// Roll the parsed expression
 		const result = await rollParsedExpression(parsed);
 
-		// Format the result
-		let response = "";
-
-		// For simple single expression, show concise format
-		if (result.expressionResults.length === 1) {
-			const expr = result.expressionResults[0];
-			if (expr && expr.diceGroupResults.length === 1) {
-				const group = expr.diceGroupResults[0];
-				if (group) {
-					const groupData = group.result.originalGroup;
-
-					// Format like "2d6: **8** [3, 5]"
-					if (groupData.quantity > 0) {
-						const rollDisplay = group.result.rolls
-							.map(([value, exploded, dropped]) => {
-								let display = value.toString();
-								if (exploded) display += "!";
-								if (dropped) display = `~~${display}~~`;
-								return display;
-							})
-							.join(", ");
-						response = `${groupData.quantity}d${groupData.sides}: **${result.grandTotal}** [${rollDisplay}]`;
-					} else {
-						// Pure number modifier
-						response = `${groupData.sides}: **${result.grandTotal}**`;
-					}
-				}
-			} else {
-				// Multiple dice groups in one expression
-				response = `${diceInput}: **${result.grandTotal}**`;
-			}
-		} else {
-			// Multiple expressions
-			response = `${diceInput}: **${result.grandTotal}**`;
-		}
-
-		// Add success count if target number was specified
-		if (result.targetNumber !== undefined && result.totalSuccesses !== undefined) {
-			response += ` = **${result.totalSuccesses}** success${result.totalSuccesses !== 1 ? "es" : ""}`;
-		}
+		// Format the result using the new formatting function
+		const response = formatRollResult(result);
 
 		await interaction.reply(warningMsg + response);
 	},
