@@ -1,6 +1,6 @@
 import { log } from "../utils/diags.js";
 import { GetDiscordEnv } from "../utils/env.js";
-import { REST, Routes } from "discord.js";
+import { REST, Routes, type APIApplicationCommand } from "discord.js";
 import VerifyCommands from "../utils/verify.js";
 import { slashCommands } from "../commands/index.js";
 
@@ -45,6 +45,13 @@ async function main() {
 				const res = await rest.put(Routes.applicationGuildCommands(appId, guildId), { body });
 				log.info("Deployed public commands to guild", { count: (res as any[]).length, guildId });
 			} else {
+				const globalCmds = (await rest.get(Routes.applicationCommands(appId))) as APIApplicationCommand[];
+				const existingGlobal = globalCmds.find((c) => c.name === "roll");
+				if (existingGlobal) {
+					log.info("Deleting existing global command 'roll' with old definition", { id: existingGlobal.id });
+					await rest.delete(Routes.applicationCommand(appId, existingGlobal.id));
+				}
+
 				// global deploy (may take up to an hour to propagate)
 				log.info("Deploying *GLOBAL* commands");
 				const res = await rest.put(Routes.applicationCommands(appId), { body });
