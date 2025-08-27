@@ -53,22 +53,22 @@ describe("trait response formatting", () => {
         expect(formatted).toContain("Wild Die: 1d6 [6] +2 = **8** success");
     });
     it("should format exploding dice correctly", () => {
-        const traitResult = createMockDiceGroupResult(8, [[8, true, false]]);
-        const wildResult = createMockDiceGroupResult(6, [[6, true, false]]);
+        const traitResult = createMockDiceGroupResult(8, [[9, true, false]]);
+        const wildResult = createMockDiceGroupResult(6, [[8, true, false]]);
         const traitDieResult = {
             traitResult,
             wildResult,
             chosenResult: "trait",
-            traitTotal: 8,
-            wildTotal: 6,
-            finalTotal: 8,
+            traitTotal: 9,
+            wildTotal: 8,
+            finalTotal: 9,
             state: ExpressionState.NotApplicable,
             isCriticalFailure: false,
         };
         const fullResult = { traitDieResult, rawExpression: "d8" };
         const formatted = formatTraitResult(fullResult);
-        expect(formatted).toContain("Trait Die: 1d8 [8!] = **8**");
-        expect(formatted).toContain("Wild Die: 1d6 [6!] = **6** discarded");
+        expect(formatted).toContain("Trait Die: 1d8 [9!] = **9**");
+        expect(formatted).toContain("Wild Die: 1d6 [8!] = **8** discarded");
     });
     it("should format critical failure correctly", () => {
         const traitResult = createMockDiceGroupResult(8, [[1, false, false]]);

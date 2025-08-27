@@ -115,7 +115,6 @@ export function formatRollResult(result) {
  */
 export function formatTraitResult(result) {
     const { traitDieResult } = result;
-    const hasTargetNumber = result.targetNumber !== undefined;
     const hasCriticalFailure = traitDieResult.isCriticalFailure;
     const globalMod = result.globalModifier || 0;
     // Build the original expression for display
@@ -144,9 +143,7 @@ export function formatTraitResult(result) {
         if (!isChosen) {
             return "discarded";
         }
-        if (!hasTargetNumber) {
-            return "";
-        }
+        // For the chosen die, always show the actual state (trait rolls always have target numbers)
         switch (state) {
             case ExpressionState.Raise:
                 return "raise";
