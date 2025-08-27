@@ -7,6 +7,7 @@ export var ExpressionState;
     ExpressionState["Failed"] = "failed";
     ExpressionState["Success"] = "success";
     ExpressionState["Raise"] = "raise";
+    ExpressionState["Discarded"] = "discarded";
 })(ExpressionState || (ExpressionState = {}));
 export function parseRollExpression(expression) {
     // Clean up the expression
@@ -399,5 +400,167 @@ export function rollDice(quantity, sides, exploding, explodingNumber, infinite, 
     }
     const sum = rolls.reduce((acc, v) => acc + v[0], 0);
     return sum;
+}
+export function parseTraitExpression(expression) {
+    // Clean up the expression
+    const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
+    // Initialize result with defaults
+    const result = {
+        traitDie: { quantity: 1, sides: 4 }, // default d4
+        wildDie: { quantity: 1, sides: 6 }, // default d6
+        targetHighest: 1,
+        validationMessages: [],
+    };
+    // Helper function to add validation messages
+    const addValidationMessage = (message, details) => {
+        result.validationMessages.push(message);
+        log.trace(message, details);
+    };
+    // Extract target number if present
+    const tnMatch = cleanExpression.match(/tn(\d+)/);
+    if (tnMatch && tnMatch[1]) {
+        result.targetNumber = parseInt(tnMatch[1]);
+    }
+    // Extract target highest if present
+    const thMatch = cleanExpression.match(/th(\d+)/);
+    if (thMatch && thMatch[1]) {
+        result.targetHighest = parseInt(thMatch[1]);
+    }
+    // Remove target number and target highest from expression for further parsing
+    let workingExpression = cleanExpression.replace(/tn\d+/, "");
+    workingExpression = workingExpression.replace(/th\d+/, "");
+    // Extract wild die if present (wd<n>)
+    const wildDieMatch = workingExpression.match(/wd(\d+)/);
+    if (wildDieMatch && wildDieMatch[1]) {
+        const wildSides = parseInt(wildDieMatch[1]);
+        if (wildSides >= 2 && wildSides <= 100) {
+            result.wildDie.sides = wildSides;
+        }
+        else {
+            addValidationMessage(`Invalid wild die sides ${wildSides}, must be 2-100`);
+        }
+        workingExpression = workingExpression.replace(/wd\d+/, "");
+    }
+    // Parse trait die and any inline modifiers FIRST (to give priority to inline modifiers)
+    // Look for patterns like: d8, 1d8, d8+1, 1d8+2, d8-1, etc.
+    const traitDieMatch = workingExpression.match(/(\d*)d(\d+)([+-]\d+)?/);
+    if (traitDieMatch && traitDieMatch[2]) {
+        const quantity = traitDieMatch[1] ? parseInt(traitDieMatch[1]) : 1;
+        const sides = parseInt(traitDieMatch[2]);
+        const modifier = traitDieMatch[3] ? parseInt(traitDieMatch[3]) : undefined;
+        // Validate trait die quantity (must be 1 for trait rolls)
+        if (quantity !== 1) {
+            addValidationMessage(`Trait die quantity must be 1, got ${quantity}`);
+        }
+        // Validate trait die sides
+        if (sides >= 2 && sides <= 100) {
+            result.traitDie.sides = sides;
+        }
+        else {
+            addValidationMessage(`Invalid trait die sides ${sides}, must be 2-100`);
+        }
+        // Handle inline modifier as global modifier (gets priority)
+        if (modifier !== undefined) {
+            result.globalModifier = modifier;
+        }
+        workingExpression = workingExpression.replace(/(\d*)d(\d+)([+-]\d+)?/, "");
+    }
+    // Extract global modifier if present: (1), (+1), (-1) - only if not already set by inline modifier
+    if (result.globalModifier === undefined) {
+        const globalModMatch = workingExpression.match(/\(([+-]?\d+)\)/);
+        if (globalModMatch && globalModMatch[1]) {
+            const modStr = globalModMatch[1];
+            result.globalModifier =
+                modStr.startsWith("+") || modStr.startsWith("-") ? parseInt(modStr) : parseInt(modStr);
+        }
+    }
+    // Remove global modifier from expression for further parsing
+    workingExpression = workingExpression.replace(/\([+-]?\d+\)/, "");
+    // Handle remaining expressions - check for just a modifier if no trait die was found
+    if (!traitDieMatch) {
+        // If no trait die found, check for just a modifier
+        const modifierMatch = workingExpression.match(/^([+-]?\d+)$/);
+        if (modifierMatch && modifierMatch[1] && result.globalModifier === undefined) {
+            result.globalModifier = parseInt(modifierMatch[1]);
+        }
+        else if (!workingExpression.trim()) {
+            // Empty expression is ok, use defaults
+        }
+        else {
+            addValidationMessage(`Unable to parse trait die from expression`);
+        }
+    }
+    // Set exploding properties for both dice
+    result.traitDie.exploding = true;
+    result.traitDie.infinite = true;
+    result.traitDie.explodingNumber = result.traitDie.sides;
+    result.wildDie.exploding = true;
+    result.wildDie.infinite = true;
+    result.wildDie.explodingNumber = result.wildDie.sides;
+    log.trace("Parsed trait expression", {
+        expression: cleanExpression,
+        traitDie: result.traitDie,
+        wildDie: result.wildDie,
+        targetNumber: result.targetNumber,
+        globalModifier: result.globalModifier,
+        targetHighest: result.targetHighest,
+        validationMessages: result.validationMessages,
+    });
+    return result;
+}
+export function rollParsedTraitExpression(parsed, rawExpression) {
+    // Roll the trait die
+    const traitResult = rollDiceGroup(parsed.traitDie);
+    // Roll the wild die
+    const wildResult = rollDiceGroup(parsed.wildDie);
+    // Calculate totals with global modifier
+    const globalMod = parsed.globalModifier || 0;
+    const traitTotal = traitResult.total + globalMod;
+    const wildTotal = wildResult.total + globalMod;
+    // Determine which result to use (higher total)
+    const chosenResult = traitTotal >= wildTotal ? "trait" : "wild";
+    const finalTotal = Math.max(traitTotal, wildTotal);
+    // Check for critical failure (both dice rolled natural 1s)
+    const traitNaturalRolls = traitResult.rolls.map(([roll]) => roll);
+    const wildNaturalRolls = wildResult.rolls.map(([roll]) => roll);
+    // Critical failure occurs when both dice have at least one natural 1 in their initial rolls
+    const traitHasNatural1 = traitNaturalRolls.length > 0 && traitNaturalRolls[0] === 1;
+    const wildHasNatural1 = wildNaturalRolls.length > 0 && wildNaturalRolls[0] === 1;
+    const isCriticalFailure = traitHasNatural1 && wildHasNatural1;
+    // Determine expression state based on target number
+    let state;
+    if (isCriticalFailure) {
+        state = ExpressionState.CriticalFailure;
+    }
+    else if (parsed.targetNumber !== undefined) {
+        if (finalTotal >= parsed.targetNumber + 4) {
+            state = ExpressionState.Raise;
+        }
+        else if (finalTotal >= parsed.targetNumber) {
+            state = ExpressionState.Success;
+        }
+        else {
+            state = ExpressionState.Failed;
+        }
+    }
+    else {
+        state = ExpressionState.NotApplicable;
+    }
+    const traitDieResult = {
+        traitResult,
+        wildResult,
+        chosenResult,
+        traitTotal,
+        wildTotal,
+        finalTotal,
+        state,
+        isCriticalFailure,
+    };
+    return {
+        traitDieResult,
+        ...(parsed.targetNumber !== undefined && { targetNumber: parsed.targetNumber }),
+        ...(parsed.globalModifier !== undefined && { globalModifier: parsed.globalModifier }),
+        ...(rawExpression !== undefined && { rawExpression }),
+    };
 }
 //# sourceMappingURL=game.js.map

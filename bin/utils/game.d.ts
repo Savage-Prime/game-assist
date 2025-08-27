@@ -3,7 +3,8 @@ export declare enum ExpressionState {
     CriticalFailure = "critical_failure",// All non-dropped dice rolled 1s
     Failed = "failed",// < targetNumber
     Success = "success",// >= targetNumber but < targetNumber + 4
-    Raise = "raise"
+    Raise = "raise",// >= targetNumber + 4
+    Discarded = "discarded"
 }
 export interface DiceGroup {
     quantity: number;
@@ -48,6 +49,30 @@ export interface FullRollResult {
     globalModifier?: number;
     rawExpression?: string;
 }
+export interface ParsedTraitExpression {
+    traitDie: DiceGroup;
+    wildDie: DiceGroup;
+    targetHighest?: number;
+    globalModifier?: number;
+    targetNumber?: number;
+    validationMessages: string[];
+}
+export interface TraitDieResult {
+    traitResult: DiceGroupResult;
+    wildResult: DiceGroupResult;
+    chosenResult: "trait" | "wild";
+    traitTotal: number;
+    wildTotal: number;
+    finalTotal: number;
+    state?: ExpressionState;
+    isCriticalFailure: boolean;
+}
+export interface FullTraitResult {
+    traitDieResult: TraitDieResult;
+    targetNumber?: number;
+    globalModifier?: number;
+    rawExpression?: string;
+}
 export declare function parseRollExpression(expression: string): ParsedRollExpression;
 export declare function rollDiceGroup(group: DiceGroup): DiceGroupResult;
 export declare function rollExpression(expression: {
@@ -60,4 +85,6 @@ export declare function isCriticalFailure(expressionResult: ExpressionResult): b
 export declare function isFullRollCriticalFailure(fullResult: FullRollResult): boolean;
 export declare function rollParsedExpression(parsed: ParsedRollExpression, rawExpression?: string): Promise<FullRollResult>;
 export declare function rollDice(quantity: number, sides: number, exploding: boolean, explodingNumber: number, infinite: boolean, rolls: [number, boolean][]): number;
+export declare function parseTraitExpression(expression: string): ParsedTraitExpression;
+export declare function rollParsedTraitExpression(parsed: ParsedTraitExpression, rawExpression?: string): FullTraitResult;
 //# sourceMappingURL=game.d.ts.map
