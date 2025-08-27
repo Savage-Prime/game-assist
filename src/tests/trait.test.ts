@@ -14,6 +14,7 @@ describe("trait rolling functions", () => {
 			expect(result.wildDie.quantity).toBe(1);
 			expect(result.wildDie.exploding).toBe(true);
 			expect(result.wildDie.infinite).toBe(true);
+			expect(result.targetNumber).toBe(4); // default target number
 			expect(result.validationMessages).toHaveLength(0);
 		});
 
@@ -95,6 +96,7 @@ describe("trait rolling functions", () => {
 
 			expect(result.traitDie.sides).toBe(4);
 			expect(result.wildDie.sides).toBe(6);
+			expect(result.targetNumber).toBe(4); // default target number
 			expect(result.validationMessages).toHaveLength(0);
 		});
 	});
@@ -128,12 +130,19 @@ describe("trait rolling functions", () => {
 			}
 		});
 
-		it("should handle expressions without target number", () => {
+		it("should use default target number when none specified", () => {
 			const parsed = parseTraitExpression("d8+2");
 			const result = rollParsedTraitExpression(parsed);
 
-			expect(result.traitDieResult.state).toBe(ExpressionState.NotApplicable);
-			expect(result.targetNumber).toBeUndefined();
+			// Should use default target number of 4
+			expect(result.targetNumber).toBe(4);
+			// State should be determined based on the default target number
+			expect([
+				ExpressionState.Success,
+				ExpressionState.Raise,
+				ExpressionState.Failed,
+				ExpressionState.CriticalFailure, // possible if both dice roll 1
+			]).toContain(result.traitDieResult.state);
 		});
 
 		it("should determine success states correctly", () => {

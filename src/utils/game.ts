@@ -570,6 +570,7 @@ export function parseTraitExpression(expression: string): ParsedTraitExpression 
 		traitDie: { quantity: 1, sides: 4 }, // default d4
 		wildDie: { quantity: 1, sides: 6 }, // default d6
 		targetHighest: 1,
+		targetNumber: 4, // default target number for trait rolls
 		validationMessages: [],
 	};
 
