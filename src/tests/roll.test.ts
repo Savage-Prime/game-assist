@@ -80,6 +80,52 @@ describe("dice rolling functions", () => {
 			const diceGroup = result.expressionResults[0]?.diceGroupResults[0]?.result.originalGroup;
 			expect(diceGroup?.exploding).toBe(false);
 		});
+
+		it("should explode on threshold and above when using >n syntax", () => {
+			// Test with a controlled scenario using the rollDiceGroup function directly
+			const result = rollDiceGroup({
+				quantity: 100,
+				sides: 6,
+				exploding: true,
+				explodingNumber: 5,
+				infinite: false,
+			});
+
+			// With explodingNumber=5, any roll of 5 or 6 should explode
+			// Check that we have some exploded dice (there should be many with 100 rolls)
+			const explodedRolls = result.rolls.filter(([, exploded]) => exploded);
+			expect(explodedRolls.length).toBeGreaterThan(0);
+
+			// All exploded rolls should have values >= 5 (since some will be totals including the explosion)
+			explodedRolls.forEach(([value]) => {
+				expect(value).toBeGreaterThanOrEqual(5);
+			});
+		});
+
+		it("should parse and roll exploding dice with >n syntax correctly", async () => {
+			// Test the specific case mentioned in the issue: 20d6!>5
+			const parsed = parseRollExpression("20d6!>5");
+			expect(parsed.expressions).toHaveLength(1);
+			expect(parsed.expressions[0]!.diceGroups).toHaveLength(1);
+
+			const diceGroup = parsed.expressions[0]!.diceGroups[0]!.group;
+			expect(diceGroup.quantity).toBe(20);
+			expect(diceGroup.sides).toBe(6);
+			expect(diceGroup.exploding).toBe(true);
+			expect(diceGroup.explodingNumber).toBe(5);
+
+			// Roll it and verify behavior
+			const result = await rollParsedExpression(parsed);
+			expect(result.expressionResults).toHaveLength(1);
+
+			const rolls = result.expressionResults[0]!.diceGroupResults[0]!.result.rolls;
+			expect(rolls).toHaveLength(20);
+
+			// With explodingNumber=5, any die that rolled 5 or 6 should be marked as exploded
+			const explodedRolls = rolls.filter(([, exploded]) => exploded);
+			// We should have some exploded dice with 20 d6 rolls where 5+ explodes
+			expect(explodedRolls.length).toBeGreaterThan(0);
+		});
 	});
 
 	describe("parser validation", () => {

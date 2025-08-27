@@ -519,13 +519,13 @@ export function rollDice(
 			r = randomInt(1, sides);
 			total += r;
 			attempts++;
-			if (exploding && r === explodingNumber) {
+			if (exploding && r >= explodingNumber) {
 				exploded = true;
 			}
 		} while (
 			exploding &&
 			attempts < maxAttempts &&
-			(infinite ? r === explodingNumber : attempts === 1 && r === explodingNumber) // if not infinite, allow exactly one extra roll after the explosion
+			(infinite ? r >= explodingNumber : attempts === 1 && r >= explodingNumber) // if not infinite, allow exactly one extra roll after the explosion
 		);
 		rolls.push([total, exploded]);
 	}
