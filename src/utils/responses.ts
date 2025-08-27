@@ -1,4 +1,4 @@
-import { ExpressionState, isFullRollCriticalFailure, type FullRollResult } from "./game.js";
+import { ExpressionState, isFullRollCriticalFailure, type FullRollResult, type FullTraitResult } from "./game.js";
 
 /**
  * Formats the result of a roll command using unified linear format
@@ -115,6 +115,102 @@ export function formatRollResult(result: FullRollResult): string {
 	// Add critical failure notice if any expression had one
 	if (hasCriticalFailure) {
 		response += "\n❗**CRITICAL FAILURE**";
+	}
+
+	return response;
+}
+
+/**
+ * Formats the result of a trait command using Savage Worlds trait roll format
+ * Pattern: Trait Die: dice [rolls] modifiers = **result** [state]
+ *          Wild Die: dice [rolls] modifiers = **result** [state]
+ * @param result The full trait result from rollParsedTraitExpression
+ * @returns Formatted string ready for Discord display
+ */
+export function formatTraitResult(result: FullTraitResult): string {
+	const { traitDieResult } = result;
+	const hasTargetNumber = result.targetNumber !== undefined;
+	const hasCriticalFailure = traitDieResult.isCriticalFailure;
+	const globalMod = result.globalModifier || 0;
+
+	// Build the original expression for display
+	let originalExpression = "";
+	if (result.rawExpression) {
+		originalExpression = `> 🎲 *${result.rawExpression}*\n`;
+	}
+
+	// Helper function to format dice rolls for display
+	const formatRolls = (rolls: [number, boolean, boolean][]): string => {
+		return rolls
+			.map(([value, exploded, dropped]) => {
+				let display = value.toString();
+				if (exploded) display += "!";
+				if (dropped) display = `~~${display}~~`;
+				return display;
+			})
+			.join(", ");
+	};
+
+	// Helper function to get state text
+	const getStateText = (isChosen: boolean, state?: ExpressionState): string => {
+		if (hasCriticalFailure) {
+			return ""; // Critical failure is shown separately
+		}
+
+		if (!isChosen) {
+			return "discarded";
+		}
+
+		if (!hasTargetNumber) {
+			return "";
+		}
+
+		switch (state) {
+			case ExpressionState.Raise:
+				return "raise";
+			case ExpressionState.Success:
+				return "success";
+			case ExpressionState.Failed:
+				return "failure";
+			default:
+				return "";
+		}
+	};
+
+	// Format trait die line
+	const traitRolls = formatRolls(traitDieResult.traitResult.rolls);
+	const traitIsChosen = traitDieResult.chosenResult === "trait";
+	const traitStateText = getStateText(traitIsChosen, traitDieResult.state);
+
+	let traitLine = `Trait Die: 1d${traitDieResult.traitResult.originalGroup.sides} [${traitRolls}]`;
+	if (globalMod !== 0) {
+		traitLine += ` ${globalMod >= 0 ? "+" : ""}${globalMod}`;
+	}
+	traitLine += ` = **${traitDieResult.traitTotal}**`;
+	if (traitStateText) {
+		traitLine += ` ${traitStateText}`;
+	}
+
+	// Format wild die line
+	const wildRolls = formatRolls(traitDieResult.wildResult.rolls);
+	const wildIsChosen = traitDieResult.chosenResult === "wild";
+	const wildStateText = getStateText(wildIsChosen, traitDieResult.state);
+
+	let wildLine = `Wild Die: 1d${traitDieResult.wildResult.originalGroup.sides} [${wildRolls}]`;
+	if (globalMod !== 0) {
+		wildLine += ` ${globalMod >= 0 ? "+" : ""}${globalMod}`;
+	}
+	wildLine += ` = **${traitDieResult.wildTotal}**`;
+	if (wildStateText) {
+		wildLine += ` ${wildStateText}`;
+	}
+
+	// Build the response
+	let response = originalExpression + traitLine + "\n" + wildLine;
+
+	// Add critical failure indicator if applicable
+	if (hasCriticalFailure) {
+		response += "\n❗ **CRITICAL FAILURE**";
 	}
 
 	return response;

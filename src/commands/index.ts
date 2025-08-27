@@ -4,6 +4,7 @@
 import type { ChatInputCommandInteraction, SlashCommandBuilder, SlashCommandOptionsOnlyBuilder } from "discord.js";
 import ping from "./ping.js";
 import roll from "./roll.js";
+import trait from "./trait.js";
 
 export type SlashCommand = {
 	data: SlashCommandBuilder | SlashCommandOptionsOnlyBuilder;
@@ -11,7 +12,7 @@ export type SlashCommand = {
 };
 
 // keep a list for deployment
-export const slashCommandList: SlashCommand[] = [ping, roll];
+export const slashCommandList: SlashCommand[] = [ping, roll, trait];
 
 // build the name→command map safely
 export const slashCommands: Record<string, SlashCommand> = Object.fromEntries(
