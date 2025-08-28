@@ -10,6 +10,7 @@ A powerful Discord bot designed to assist tabletop RPG players with dice rolling
 - **Target Numbers**: Success counting with target number system (tn)
 - **Keep/Drop Mechanics**: Keep highest/lowest or drop highest/lowest dice
 - **Multiple Expressions**: Roll multiple different dice expressions in a single command
+- **Expression Repetition**: Repeat any dice expression multiple times using the `x` modifier
 - **Global Modifiers**: Apply modifiers to the entire roll result
 - **Detailed Output**: Clear formatting showing individual dice results and totals
 
@@ -96,6 +97,12 @@ The `/roll` command supports a powerful and flexible dice notation system:
 - `2d6 (+3)` - Roll 2d6 and add 3 to the total result
 - `1d20 (-2)` - Roll 1d20 and subtract 2 from the total result
 
+### Repetition
+- `2d6 x3` - Repeat the expression 3 times (equivalent to `2d6, 2d6, 2d6`)
+- `1d20+5 x2` - Repeat the entire expression 2 times
+- `1d6,1d8 x2` - Repeat all expressions in order (creates 4 total rolls)
+- `2d6 x` - Just `x` without number defaults to 1 (no repetition)
+
 ### Complex Expressions
 - `1d8+1d6+2` - Roll 1d8, add 1d6, add 2
 - `2d6!!;1d8!` - Roll two separate expressions: 2d6 with infinite exploding, and 1d8 with single exploding
@@ -116,6 +123,11 @@ The `/roll` command supports a powerful and flexible dice notation system:
 
 /roll 4d6kh3
 → 4d6 [~~2~~, 4, 5, 5] = **14**
+
+/roll 3d6 x3
+→ 3d6 [1, 4, 5] = **10**
+→ 3d6 [2, 6, 3] = **11**
+→ 3d6 [5, 5, 2] = **12**
 
 /roll 1d8 tn4
 → 1d8 [6] = **6** success
