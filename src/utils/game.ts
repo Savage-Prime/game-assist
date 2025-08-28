@@ -78,8 +78,26 @@ export interface FullTraitResult {
 }
 
 export function parseRollExpression(expression: string): ParsedRollExpression {
+	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
+	let repetitionCount = 1;
+	const xMatch = expression.toLowerCase().match(/\s+x\s*(\d*)\s*$/);
+	if (xMatch) {
+		const countStr = xMatch[1];
+		if (countStr === "" || countStr === undefined) {
+			// Just 'x' without number, treat as x1
+			repetitionCount = 1;
+		} else {
+			const parsedCount = parseInt(countStr);
+			// If x < 2, treat as 1 (effectively ignored)
+			repetitionCount = parsedCount < 2 ? 1 : parsedCount;
+		}
+	}
+
+	// Remove the x pattern from the original expression before further processing
+	let expressionWithoutX = expression.replace(/\s+x\s*\d*\s*$/i, "");
+
 	// Clean up the expression
-	const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
+	const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();
 
 	// Initialize result
 	const result: ParsedRollExpression = { expressions: [], validationMessages: [] };
@@ -160,6 +178,38 @@ export function parseRollExpression(expression: string): ParsedRollExpression {
 
 	// Don't default to 1d6 - let empty expressions indicate parsing failure
 	// The caller can decide what to do with invalid input
+
+	// Apply repetition if specified (and > 1)
+	if (repetitionCount > 1) {
+		const originalExpressions = [...result.expressions];
+		result.expressions = [];
+
+		// Repeat the original expressions repetitionCount times
+		for (let i = 0; i < repetitionCount; i++) {
+			// Deep clone each expression to avoid reference issues
+			for (const expr of originalExpressions) {
+				const clonedExpression = {
+					diceGroups: expr.diceGroups.map((dg) => ({ group: { ...dg.group }, operator: dg.operator })),
+				};
+				result.expressions.push(clonedExpression);
+			}
+		}
+	}
+
+	// Validate total dice groups limit (100 max across all expressions)
+	const totalDiceGroups = result.expressions.reduce((total, expr) => {
+		return total + expr.diceGroups.filter((dg) => dg.group.quantity > 0).length;
+	}, 0);
+
+	if (totalDiceGroups > 100) {
+		addValidationMessage(`Too many dice groups: ${totalDiceGroups}, maximum is 100`, {
+			totalDiceGroups,
+			repetitionCount,
+			originalExpressions: result.expressions.length / (repetitionCount || 1),
+		});
+		// Clear expressions to indicate parsing failure
+		result.expressions = [];
+	}
 
 	return result;
 }

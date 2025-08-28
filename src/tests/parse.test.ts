@@ -200,6 +200,88 @@ describe("parseRollExpression", () => {
 		});
 	});
 
+	describe("repetition with x modifier", () => {
+		it("should parse x2 to create 2 expressions", () => {
+			const result = parseRollExpression("2d6 x2");
+			expect(result.expressions).toHaveLength(2);
+			expect(result.expressions[0]!.diceGroups).toHaveLength(1);
+			expect(result.expressions[0]!.diceGroups[0]!.group.quantity).toBe(2);
+			expect(result.expressions[0]!.diceGroups[0]!.group.sides).toBe(6);
+			expect(result.expressions[1]!.diceGroups).toHaveLength(1);
+			expect(result.expressions[1]!.diceGroups[0]!.group.quantity).toBe(2);
+			expect(result.expressions[1]!.diceGroups[0]!.group.sides).toBe(6);
+		});
+
+		it("should parse x3 to create 3 expressions", () => {
+			const result = parseRollExpression("1d20+5 x3");
+			expect(result.expressions).toHaveLength(3);
+			// Check all three expressions are identical
+			for (let i = 0; i < 3; i++) {
+				expect(result.expressions[i]!.diceGroups).toHaveLength(2);
+				expect(result.expressions[i]!.diceGroups[0]!.group.quantity).toBe(1);
+				expect(result.expressions[i]!.diceGroups[0]!.group.sides).toBe(20);
+				expect(result.expressions[i]!.diceGroups[1]!.group.quantity).toBe(0);
+				expect(result.expressions[i]!.diceGroups[1]!.group.sides).toBe(5);
+			}
+		});
+
+		it("should handle x without number as x1", () => {
+			const result = parseRollExpression("1d6 x");
+			expect(result.expressions).toHaveLength(1);
+			expect(result.expressions[0]!.diceGroups[0]!.group.quantity).toBe(1);
+			expect(result.expressions[0]!.diceGroups[0]!.group.sides).toBe(6);
+		});
+
+		it("should treat x1 as no repetition", () => {
+			const result = parseRollExpression("1d6 x1");
+			expect(result.expressions).toHaveLength(1);
+			expect(result.expressions[0]!.diceGroups[0]!.group.quantity).toBe(1);
+			expect(result.expressions[0]!.diceGroups[0]!.group.sides).toBe(6);
+		});
+
+		it("should treat x0 and negative x as no repetition", () => {
+			const result1 = parseRollExpression("1d6 x0");
+			expect(result1.expressions).toHaveLength(1);
+
+			const result2 = parseRollExpression("1d6 x-5");
+			expect(result2.expressions).toHaveLength(1);
+		});
+
+		it("should work with complex expressions including modifiers", () => {
+			const result = parseRollExpression("2d4kh1 (+1) tn4 x2");
+			expect(result.expressions).toHaveLength(2);
+			expect(result.targetNumber).toBe(4);
+			expect(result.globalModifier).toBe(1);
+			// Both expressions should have the same dice configuration
+			for (let i = 0; i < 2; i++) {
+				expect(result.expressions[i]!.diceGroups).toHaveLength(1);
+				expect(result.expressions[i]!.diceGroups[0]!.group.quantity).toBe(2);
+				expect(result.expressions[i]!.diceGroups[0]!.group.sides).toBe(4);
+				expect(result.expressions[i]!.diceGroups[0]!.group.keepHighest).toBe(1);
+			}
+		});
+
+		it("should work with multiple original expressions", () => {
+			const result = parseRollExpression("1d6,1d8 x2");
+			expect(result.expressions).toHaveLength(4); // 2 original expressions × 2 repetitions
+			// First repetition
+			expect(result.expressions[0]!.diceGroups[0]!.group.sides).toBe(6);
+			expect(result.expressions[1]!.diceGroups[0]!.group.sides).toBe(8);
+			// Second repetition
+			expect(result.expressions[2]!.diceGroups[0]!.group.sides).toBe(6);
+			expect(result.expressions[3]!.diceGroups[0]!.group.sides).toBe(8);
+		});
+
+		it("should reject expressions with too many dice groups", () => {
+			// Create an expression that would exceed 100 dice groups when repeated
+			// 30 dice groups × 4 repetitions = 120 dice groups (> 100 limit)
+			const baseParts = Array(30).fill("1d6").join("+");
+			const result = parseRollExpression(`${baseParts} x4`);
+			expect(result.expressions).toHaveLength(0); // Should clear expressions on validation failure
+			expect(result.validationMessages.some((msg) => msg.includes("Too many dice groups"))).toBe(true);
+		});
+	});
+
 	describe("error cases", () => {
 		it("should handle invalid dice notation gracefully", () => {
 			// These should not throw, but may return default values
