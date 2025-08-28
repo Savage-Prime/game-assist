@@ -4,10 +4,10 @@ import { formatRollResult } from "../utils/responses.js";
 export default {
     data: new SlashCommandBuilder()
         .setName("roll")
-        .setDescription("Roll dice using an expression (e.g., 2d6, 1d8!!;1d6!! +1 tn4, 1d20+5, 5d6kh3)")
+        .setDescription("Roll dice using an expression (e.g., 2d6, 1d8!!;1d6!! +1 tn4, 1d20+5, 5d6kh3, 2d6 x3)")
         .addStringOption((option) => option
         .setName("dice")
-        .setDescription("Dice expression (e.g., 1d12+2d6+3, 1d4!!;1d6!! -2 tn4)")
+        .setDescription("Dice expression (e.g., 1d12+2d6+3, 1d4!!;1d6!! -2 tn4, 2d6 x3)")
         .setRequired(true)),
     async execute(interaction) {
         const diceInput = interaction.options.getString("dice", true); // true makes it required
@@ -27,6 +27,7 @@ export default {
             errorMsg += `• \`4d6kh3\` - Roll 4d6 and keep the highest 3\n`;
             errorMsg += `• \`3d10 tn7\` - Roll 3d10 and count successes (7+)\n`;
             errorMsg += `• \`1d6;1d8\` - Roll multiple expressions\n`;
+            errorMsg += `• \`2d6 x3\` - Repeat expression 3 times\n`;
             await interaction.reply(errorMsg);
             return;
         }
