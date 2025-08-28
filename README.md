@@ -5,6 +5,7 @@ A powerful Discord bot designed to assist tabletop RPG players with dice rolling
 ## Features
 
 - **Advanced Dice Rolling**: Support for complex dice expressions with multiple dice types, modifiers, and operators
+- **Savage Worlds Trait Rolls**: Specialized trait die + wild die mechanics with critical failure detection
 - **Exploding Dice**: Both single (!) and infinite (!!) exploding dice with customizable thresholds
 - **Target Numbers**: Success counting with target number system (tn)
 - **Keep/Drop Mechanics**: Keep highest/lowest or drop highest/lowest dice
@@ -62,6 +63,9 @@ Simple health check command that responds with "pong".
 
 ### `/roll <dice>`
 Roll dice using advanced dice expressions. The dice expression is required.
+
+### `/trait <dice>`
+Roll a Savage Worlds trait check with trait die + wild die mechanics. The dice expression is required.
 
 ## Dice Expression Syntax
 
@@ -128,6 +132,61 @@ The `/roll` command supports a powerful and flexible dice notation system:
 → 1d8 [5] + 1 = **6**
 ```
 
+## Trait Expression Syntax
+
+The `/trait` command implements Savage Worlds trait roll mechanics with a trait die + wild die system. Both dice explode infinitely on their maximum value, and the higher result is kept.
+
+### Basic Trait Rolls
+- `d8` - Roll d8 trait die + d6 wild die (defaults to TN 4)
+- `d10+1` - Roll d10 trait die + d6 wild die with +1 modifier
+- `d6 tn6` - Roll d6 trait die + d6 wild die against target number 6
+
+### Wild Die Override
+- `d8 wd8` - Roll d8 trait die + d8 wild die (override default d6)
+- `d10 wd6` - Roll d10 trait die + d6 wild die (explicit wild die)
+
+### Full Syntax
+- `1d8 wd6 th1 (+1) tn4` - Complete notation with all components
+- `d12 wd8 (+2) tn6` - Common usage with override and modifier
+
+### Components
+- **Trait Die**: `d4`, `d6`, `d8`, `d10`, `d12` - Player's skill/attribute die
+- **Wild Die**: `wd6` (default), `wd8`, `wd10`, etc. - Usually d6, manually specified for larger dice
+- **Global Modifier**: `+1`, `(-2)` - Applied to both dice totals
+- **Target Number**: `tn4` (default), `tn6`, `tn8` - Difficulty of the task
+- **Target Highest**: `th1` - Number of results to compare (always 1 for traits)
+
+### Special Rules
+- **Exploding Dice**: Both dice explode infinitely on maximum value (ace)
+- **Keep Higher**: The higher total (trait or wild + modifiers) is used
+- **Critical Failure**: Occurs when both dice roll natural 1s, regardless of modifiers
+- **States**: Success (≥TN), Raise (≥TN+4), Failure (<TN)
+
+### Trait Examples
+
+```
+/trait d8
+→ Trait Die: 1d8 [5] = **5** success
+→ Wild Die: 1d6 [3] = **3** discarded
+
+/trait d8+1 tn6
+→ Trait Die: 1d8 [4] +1 = **5** discarded
+→ Wild Die: 1d6 [6!] +1 = **7** success
+
+/trait d10 wd6 tn8
+→ Trait Die: 1d10 [12!] = **12** raise
+→ Wild Die: 1d6 [2] = **2** discarded
+
+/trait d4 wd6 (+2) tn4
+→ Trait Die: 1d4 [1] +2 = **3** discarded
+→ Wild Die: 1d6 [5] +2 = **7** success
+
+/trait d4 wd6 (+4) tn4
+→ Trait Die: 1d4 [1] +4 = **5** success
+→ Wild Die: 1d6 [1] +4 = **5** success
+❗ **CRITICAL FAILURE**
+```
+
 ## Development
 
 ### Scripts
@@ -151,6 +210,7 @@ npm test
 
 Tests cover:
 - Basic dice rolling functionality
+- Savage Worlds trait roll mechanics
 - Exploding dice mechanics
 - Keep/drop logic
 - Target number success counting
@@ -165,7 +225,8 @@ src/
 ├── commands/           # Slash command implementations
 │   ├── index.ts       # Command registry
 │   ├── ping.ts        # Ping command
-│   └── roll.ts        # Dice rolling command
+│   ├── roll.ts        # Dice rolling command
+│   └── trait.ts       # Savage Worlds trait rolling command
 ├── utils/             # Utility modules
 │   ├── game.ts        # Dice parsing and rolling logic
 │   ├── rng.ts         # Random number generation
