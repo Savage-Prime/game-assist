@@ -1,5 +1,5 @@
 import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
-import { rollParsedTraitExpression, parseTraitExpression } from "../utils/game.js";
+import { rollParsedTraitExpression, parseTraitExpression } from "../utils/index.js";
 import { formatTraitResult } from "../utils/responses.js";
 
 export default {

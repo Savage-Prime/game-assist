@@ -1,4 +1,4 @@
-import { ExpressionState, isFullRollCriticalFailure, type FullRollResult, type FullTraitResult } from "./game.js";
+import { ExpressionState, isFullRollCriticalFailure, type FullRollResult, type FullTraitResult } from "./index.js";
 
 /**
  * Formats the result of a roll command using unified linear format

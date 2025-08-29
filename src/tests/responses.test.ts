@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatRollResult } from "../utils/responses.js";
-import { ExpressionState, type FullRollResult } from "../utils/game.js";
+import { ExpressionState, type FullRollResult } from "../utils/index.js";
 
 describe("formatRollResult", () => {
 	describe("basic rolls without target number", () => {

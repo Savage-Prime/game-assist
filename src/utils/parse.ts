@@ -1,83 +1,7 @@
-import { randomInt } from "./rng.js";
 import { log } from "./diags.js";
+import type { DiceGroup, RollSpecification, TraitSpecification } from "./types.js";
 
-export enum ExpressionState {
-	NotApplicable = "not_applicable", // No target number set
-	CriticalFailure = "critical_failure", // All non-dropped dice rolled 1s
-	Failed = "failed", // < targetNumber
-	Success = "success", // >= targetNumber but < targetNumber + 4
-	Raise = "raise", // >= targetNumber + 4
-	Discarded = "discarded", // For trait rolls - the die result that wasn't used
-}
-
-export interface DiceGroup {
-	quantity: number;
-	sides: number;
-	exploding?: boolean;
-	explodingNumber?: number;
-	infinite?: boolean;
-	keepHighest?: number;
-	keepLowest?: number;
-	dropHighest?: number;
-	dropLowest?: number;
-}
-
-export interface ParsedRollExpression {
-	expressions: Array<{ diceGroups: Array<{ group: DiceGroup; operator: "+" | "-" }> }>;
-	targetNumber?: number;
-	globalModifier?: number;
-	validationMessages: string[];
-}
-
-export interface DiceGroupResult {
-	originalGroup: DiceGroup;
-	rolls: [number, boolean, boolean][]; // [roll value, exploded, dropped]
-	total: number;
-}
-
-export interface ExpressionResult {
-	diceGroupResults: Array<{ result: DiceGroupResult; operator: "+" | "-" }>;
-	total: number;
-	state?: ExpressionState;
-}
-
-export interface FullRollResult {
-	expressionResults: ExpressionResult[];
-	grandTotal: number;
-	totalSuccesses?: number;
-	targetNumber?: number;
-	globalModifier?: number;
-	rawExpression?: string;
-}
-
-export interface ParsedTraitExpression {
-	traitDie: DiceGroup;
-	wildDie: DiceGroup;
-	targetHighest?: number;
-	globalModifier?: number;
-	targetNumber?: number;
-	validationMessages: string[];
-}
-
-export interface TraitDieResult {
-	traitResult: DiceGroupResult;
-	wildResult: DiceGroupResult;
-	chosenResult: "trait" | "wild";
-	traitTotal: number;
-	wildTotal: number;
-	finalTotal: number;
-	state?: ExpressionState;
-	isCriticalFailure: boolean;
-}
-
-export interface FullTraitResult {
-	traitDieResult: TraitDieResult;
-	targetNumber?: number;
-	globalModifier?: number;
-	rawExpression?: string;
-}
-
-export function parseRollExpression(expression: string): ParsedRollExpression {
+export function parseRollExpression(expression: string): RollSpecification {
 	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
 	let repetitionCount = 1;
 	const xMatch = expression.toLowerCase().match(/\s+x\s*(\d*)\s*$/);
@@ -100,7 +24,7 @@ export function parseRollExpression(expression: string): ParsedRollExpression {
 	const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();
 
 	// Initialize result
-	const result: ParsedRollExpression = { expressions: [], validationMessages: [] };
+	const result: RollSpecification = { expressions: [], validationMessages: [] };
 
 	// Helper function to add validation messages
 	const addValidationMessage = (message: string, details: any) => {
@@ -189,7 +113,10 @@ export function parseRollExpression(expression: string): ParsedRollExpression {
 			// Deep clone each expression to avoid reference issues
 			for (const expr of originalExpressions) {
 				const clonedExpression = {
-					diceGroups: expr.diceGroups.map((dg) => ({ group: { ...dg.group }, operator: dg.operator })),
+					diceGroups: expr.diceGroups.map((dg: { group: DiceGroup; operator: "+" | "-" }) => ({
+						group: { ...dg.group },
+						operator: dg.operator,
+					})),
 				};
 				result.expressions.push(clonedExpression);
 			}
@@ -197,9 +124,15 @@ export function parseRollExpression(expression: string): ParsedRollExpression {
 	}
 
 	// Validate total dice groups limit (100 max across all expressions)
-	const totalDiceGroups = result.expressions.reduce((total, expr) => {
-		return total + expr.diceGroups.filter((dg) => dg.group.quantity > 0).length;
-	}, 0);
+	const totalDiceGroups = result.expressions.reduce(
+		(total: number, expr: { diceGroups: Array<{ group: DiceGroup; operator: "+" | "-" }> }) => {
+			return (
+				total +
+				expr.diceGroups.filter((dg: { group: DiceGroup; operator: "+" | "-" }) => dg.group.quantity > 0).length
+			);
+		},
+		0,
+	);
 
 	if (totalDiceGroups > 100) {
 		addValidationMessage(`Too many dice groups: ${totalDiceGroups}, maximum is 100`, {
@@ -378,245 +311,12 @@ function parseDiceGroup(part: string, addValidationMessage: (message: string, de
 	return null;
 }
 
-export function rollDiceGroup(group: DiceGroup): DiceGroupResult {
-	const result: DiceGroupResult = { originalGroup: group, rolls: [], total: 0 };
-
-	// Handle pure number modifiers (quantity: 0)
-	if (group.quantity === 0) {
-		result.total = group.sides;
-		return result;
-	}
-
-	// Use the existing rollDice function
-	const rollResults: [number, boolean][] = [];
-	rollDice(
-		group.quantity,
-		group.sides,
-		group.exploding || false,
-		group.explodingNumber || group.sides,
-		group.infinite !== false,
-		rollResults,
-	);
-
-	// Convert to our format with drop information
-	result.rolls = rollResults.map(([value, exploded]) => [value, exploded, false]);
-
-	// Apply keep/drop mechanics
-	if (group.keepHighest || group.keepLowest || group.dropHighest || group.dropLowest) {
-		// Create array of indices with their values for sorting
-		const indexedRolls = result.rolls.map((roll, index) => ({ index, value: roll[0] }));
-
-		// Determine which dice to drop
-		let indicesToDrop: number[] = [];
-
-		if (group.keepHighest) {
-			// Keep highest N = drop all but the highest N
-			indexedRolls.sort((a, b) => b.value - a.value); // Sort descending
-			indicesToDrop = indexedRolls.slice(group.keepHighest).map((item) => item.index);
-		} else if (group.keepLowest) {
-			// Keep lowest N = drop all but the lowest N
-			indexedRolls.sort((a, b) => a.value - b.value); // Sort ascending
-			indicesToDrop = indexedRolls.slice(group.keepLowest).map((item) => item.index);
-		} else if (group.dropHighest) {
-			// Drop highest N
-			indexedRolls.sort((a, b) => b.value - a.value); // Sort descending
-			indicesToDrop = indexedRolls.slice(0, group.dropHighest).map((item) => item.index);
-		} else if (group.dropLowest) {
-			// Drop lowest N
-			indexedRolls.sort((a, b) => a.value - b.value); // Sort ascending
-			indicesToDrop = indexedRolls.slice(0, group.dropLowest).map((item) => item.index);
-		}
-
-		// Mark dropped dice
-		for (const index of indicesToDrop) {
-			result.rolls[index]![2] = true; // Set dropped = true
-		}
-	}
-
-	// Calculate total from non-dropped dice
-	result.total = result.rolls.filter(([, , dropped]) => !dropped).reduce((sum, [value]) => sum + value, 0);
-
-	return result;
-}
-
-export async function rollExpression(expression: {
-	diceGroups: Array<{ group: DiceGroup; operator: "+" | "-" }>;
-}): Promise<ExpressionResult> {
-	const result: ExpressionResult = { diceGroupResults: [], total: 0 };
-
-	for (const { group, operator } of expression.diceGroups) {
-		const groupResult = rollDiceGroup(group);
-		result.diceGroupResults.push({ result: groupResult, operator });
-
-		if (operator === "+") {
-			result.total += groupResult.total;
-		} else {
-			result.total -= groupResult.total;
-		}
-	}
-
-	return result;
-}
-
-export function isCriticalFailure(expressionResult: ExpressionResult): boolean {
-	// Check if all non-dropped dice in this expression rolled 1s
-	let hasAnyActiveDice = false;
-
-	for (const { result: groupResult } of expressionResult.diceGroupResults) {
-		// Skip pure number modifiers (quantity: 0)
-		if (groupResult.originalGroup.quantity === 0) {
-			continue;
-		}
-
-		// Check for any non-dropped dice that rolled > 1
-		const nonCriticalDice = groupResult.rolls.filter(([roll, , dropped]) => !dropped && roll > 1);
-
-		// If any dice rolled > 1, this is not a critical failure
-		if (nonCriticalDice.length > 0) {
-			return false;
-		}
-
-		// Check if this group has any active dice at all
-		const activeDice = groupResult.rolls.filter(([, , dropped]) => !dropped);
-		if (activeDice.length > 0) {
-			hasAnyActiveDice = true;
-		}
-	}
-
-	// Critical failure only if we had active dice and none rolled > 1
-	return hasAnyActiveDice;
-}
-
-export function isFullRollCriticalFailure(fullResult: FullRollResult): boolean {
-	// Check if ALL dice across ALL expressions rolled 1s (excluding dropped dice and pure number modifiers)
-	let hasAnyActiveDice = false;
-
-	for (const expr of fullResult.expressionResults) {
-		for (const { result: groupResult } of expr.diceGroupResults) {
-			// Skip pure number modifiers (quantity: 0)
-			if (groupResult.originalGroup.quantity === 0) {
-				continue;
-			}
-
-			// Check for any non-dropped dice that rolled > 1
-			const nonCriticalDice = groupResult.rolls.filter(([roll, , dropped]) => !dropped && roll > 1);
-
-			// If any dice rolled > 1, this is not a critical failure for the full roll
-			if (nonCriticalDice.length > 0) {
-				return false;
-			}
-
-			// Check if this group has any active dice at all
-			const activeDice = groupResult.rolls.filter(([, , dropped]) => !dropped);
-			if (activeDice.length > 0) {
-				hasAnyActiveDice = true;
-			}
-		}
-	}
-
-	// Critical failure only if we had active dice and ALL of them rolled 1s
-	return hasAnyActiveDice;
-}
-export async function rollParsedExpression(
-	parsed: ParsedRollExpression,
-	rawExpression?: string,
-): Promise<FullRollResult> {
-	const result: FullRollResult = { expressionResults: [], grandTotal: 0 };
-
-	// Add optional properties only if they exist
-	if (parsed.targetNumber !== undefined) {
-		result.targetNumber = parsed.targetNumber;
-	}
-	if (parsed.globalModifier !== undefined) {
-		result.globalModifier = parsed.globalModifier;
-	}
-	if (rawExpression !== undefined) {
-		result.rawExpression = rawExpression;
-	}
-
-	// Roll all expressions in parallel
-	const expressionResults = await Promise.all(parsed.expressions.map((expression) => rollExpression(expression)));
-
-	// Process results and apply state logic
-	for (const expressionResult of expressionResults) {
-		// Apply global modifier to this expression's total for target number comparison
-		const modifiedTotal = expressionResult.total + (parsed.globalModifier || 0);
-
-		// Determine state - check critical failure first
-		if (isCriticalFailure(expressionResult)) {
-			expressionResult.state = ExpressionState.CriticalFailure;
-		} else if (parsed.targetNumber !== undefined) {
-			if (modifiedTotal >= parsed.targetNumber + 4) {
-				expressionResult.state = ExpressionState.Raise;
-			} else if (modifiedTotal >= parsed.targetNumber) {
-				expressionResult.state = ExpressionState.Success;
-			} else {
-				expressionResult.state = ExpressionState.Failed;
-			}
-		} else {
-			expressionResult.state = ExpressionState.NotApplicable;
-		}
-
-		result.expressionResults.push(expressionResult);
-		result.grandTotal += expressionResult.total;
-	}
-
-	// Apply global modifier to grand total
-	if (parsed.globalModifier) {
-		result.grandTotal += parsed.globalModifier;
-	}
-
-	// Count successes from individual expressions
-	if (parsed.targetNumber !== undefined) {
-		result.totalSuccesses = result.expressionResults.reduce((sum, expr) => {
-			if (expr.state === ExpressionState.Success || expr.state === ExpressionState.Raise) {
-				return sum + 1;
-			}
-			return sum;
-		}, 0);
-	}
-
-	return result;
-}
-
-export function rollDice(
-	quantity: number,
-	sides: number,
-	exploding: boolean,
-	explodingNumber: number,
-	infinite: boolean,
-	rolls: [number, boolean][],
-) {
-	for (let i = 0; i < quantity; i++) {
-		let total = 0;
-		let r: number;
-		let attempts = 0;
-		let exploded = false;
-		const maxAttempts = 10; // Prevent infinite recursion
-		do {
-			r = randomInt(1, sides);
-			total += r;
-			attempts++;
-			if (exploding && r >= explodingNumber) {
-				exploded = true;
-			}
-		} while (
-			exploding &&
-			attempts < maxAttempts &&
-			(infinite ? r >= explodingNumber : attempts === 1 && r >= explodingNumber) // if not infinite, allow exactly one extra roll after the explosion
-		);
-		rolls.push([total, exploded]);
-	}
-	const sum = rolls.reduce((acc, v) => acc + v[0], 0);
-	return sum;
-}
-
-export function parseTraitExpression(expression: string): ParsedTraitExpression {
+export function parseTraitExpression(expression: string): TraitSpecification {
 	// Clean up the expression
 	const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
 
 	// Initialize result with defaults
-	const result: ParsedTraitExpression = {
+	const result: TraitSpecification = {
 		traitDie: { quantity: 1, sides: 4 }, // default d4
 		wildDie: { quantity: 1, sides: 6 }, // default d6
 		targetHighest: 1,
@@ -732,64 +432,4 @@ export function parseTraitExpression(expression: string): ParsedTraitExpression 
 	});
 
 	return result;
-}
-
-export function rollParsedTraitExpression(parsed: ParsedTraitExpression, rawExpression?: string): FullTraitResult {
-	// Roll the trait die
-	const traitResult = rollDiceGroup(parsed.traitDie);
-
-	// Roll the wild die
-	const wildResult = rollDiceGroup(parsed.wildDie);
-
-	// Calculate totals with global modifier
-	const globalMod = parsed.globalModifier || 0;
-	const traitTotal = traitResult.total + globalMod;
-	const wildTotal = wildResult.total + globalMod;
-
-	// Determine which result to use (higher total)
-	const chosenResult = traitTotal >= wildTotal ? "trait" : "wild";
-	const finalTotal = Math.max(traitTotal, wildTotal);
-
-	// Check for critical failure (both dice rolled natural 1s)
-	const traitNaturalRolls = traitResult.rolls.map(([roll]) => roll);
-	const wildNaturalRolls = wildResult.rolls.map(([roll]) => roll);
-
-	// Critical failure occurs when both dice have at least one natural 1 in their initial rolls
-	const traitHasNatural1 = traitNaturalRolls.length > 0 && traitNaturalRolls[0] === 1;
-	const wildHasNatural1 = wildNaturalRolls.length > 0 && wildNaturalRolls[0] === 1;
-	const isCriticalFailure = traitHasNatural1 && wildHasNatural1;
-
-	// Determine expression state based on target number
-	let state: ExpressionState | undefined;
-	if (isCriticalFailure) {
-		state = ExpressionState.CriticalFailure;
-	} else if (parsed.targetNumber !== undefined) {
-		if (finalTotal >= parsed.targetNumber + 4) {
-			state = ExpressionState.Raise;
-		} else if (finalTotal >= parsed.targetNumber) {
-			state = ExpressionState.Success;
-		} else {
-			state = ExpressionState.Failed;
-		}
-	} else {
-		state = ExpressionState.NotApplicable;
-	}
-
-	const traitDieResult: TraitDieResult = {
-		traitResult,
-		wildResult,
-		chosenResult,
-		traitTotal,
-		wildTotal,
-		finalTotal,
-		state,
-		isCriticalFailure,
-	};
-
-	return {
-		traitDieResult,
-		...(parsed.targetNumber !== undefined && { targetNumber: parsed.targetNumber }),
-		...(parsed.globalModifier !== undefined && { globalModifier: parsed.globalModifier }),
-		...(rawExpression !== undefined && { rawExpression }),
-	};
 }
