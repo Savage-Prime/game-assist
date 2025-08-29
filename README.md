@@ -13,6 +13,30 @@ A powerful Discord bot designed to assist tabletop RPG players with dice rolling
 - **Expression Repetition**: Repeat any dice expression multiple times using the `x` modifier
 - **Global Modifiers**: Apply modifiers to the entire roll result
 - **Detailed Output**: Clear formatting showing individual dice results and totals
+- **Modular Architecture**: Clean separation between parsing and execution logic
+- **Comprehensive Testing**: 224+ tests covering all functionality
+- **Centralized Configuration**: Standardized help text and error messages
+
+## Architecture
+
+The bot follows a modular architecture that separates concerns for maintainability and testability:
+
+### Core Modules
+
+- **Parse Module** (`src/utils/parse.ts`): Pure parsing functions for dice expressions
+- **Dice Module** (`src/utils/dice.ts`): Execution functions with RNG dependency
+- **Types Module** (`src/utils/types.ts`): Consolidated TypeScript interfaces
+- **Enums Module** (`src/utils/enums.ts`): Shared enumerations
+- **Messages Module** (`src/utils/messages.ts`): Centralized command configuration and help text
+- **Command Handler** (`src/utils/command-handler.ts`): Generic command execution pattern
+
+### Design Principles
+
+- **Pure Functions**: Parsing logic is deterministic and side-effect free
+- **Dependency Injection**: RNG can be mocked for testing
+- **Single Responsibility**: Each module has a clear, focused purpose
+- **DRY Principle**: Command patterns are reusable across different dice commands
+- **Type Safety**: Full TypeScript coverage with strict compilation
 
 ## Getting Started
 
@@ -237,16 +261,106 @@ src/
 ├── commands/           # Slash command implementations
 │   ├── index.ts       # Command registry
 │   ├── ping.ts        # Ping command
-│   ├── roll.ts        # Dice rolling command
-│   └── trait.ts       # Savage Worlds trait rolling command
-├── utils/             # Utility modules
-│   ├── game.ts        # Dice parsing and rolling logic
-│   ├── rng.ts         # Random number generation
+│   ├── roll.ts        # Dice rolling command (uses generic handler)
+│   └── trait.ts       # Savage Worlds trait rolling command (uses generic handler)
+├── utils/             # Utility modules (modular architecture)
+│   ├── index.ts       # Public API exports
+│   ├── parse.ts       # Pure parsing functions (no RNG dependency)
+│   ├── dice.ts        # Execution functions (with RNG dependency)
+│   ├── types.ts       # Consolidated TypeScript interfaces
+│   ├── enums.ts       # Shared enumerations and constants
+│   ├── messages.json  # Centralized command configuration and help text
+│   ├── messages.ts    # Message formatting utilities
+│   ├── command-handler.ts # Generic command execution pattern
+│   ├── responses.ts   # Result formatting functions
 │   ├── env.ts         # Environment configuration
 │   └── diags.ts       # Logging and diagnostics
-└── scripts/           # Deployment scripts
-    └── deploy-api.ts  # Command deployment
+├── scripts/           # Deployment scripts
+│   └── deploy-api.ts  # Command deployment
+└── tests/             # Test suites (224+ tests)
+    ├── parse.spec.ts  # Pure parsing logic tests
+    ├── dice.spec.ts   # Dice execution tests
+    ├── messages.spec.ts # Message system tests
+    ├── trait.spec.ts  # Trait-specific tests
+    └── ...            # Additional test files
 ```
+
+## API Reference
+
+### Core Functions
+
+#### Parsing Functions (Pure)
+```typescript
+// Parse dice expressions into structured data
+function parseRollExpression(expression: string): RollSpecification
+function parseTraitExpression(expression: string): TraitSpecification
+```
+
+#### Execution Functions (RNG-dependent)
+```typescript
+// Execute parsed expressions
+async function rollParsedExpression(parsed: RollSpecification, rawExpression?: string): Promise<FullRollResult>
+function rollParsedTraitExpression(parsed: TraitSpecification, rawExpression?: string): FullTraitResult
+```
+
+#### Command Utilities
+```typescript
+// Generic command handler for dice commands
+function handleDiceCommand<TParseData, TExecResult>(
+  interaction: ChatInputCommandInteraction,
+  config: CommandHandlerConfig<TParseData, TExecResult>
+): Promise<void>
+
+// Create standardized command configuration
+function createDiceCommand(commandName: string): CommandConfig
+```
+
+### Adding New Commands
+
+Adding a new dice command is streamlined with the modular architecture:
+
+1. **Add configuration to `messages.json`**:
+```json
+{
+  "commands": {
+    "newcommand": {
+      "description": "Your command description",
+      "parameterDescription": "Parameter help text",
+      "helpTitle": "Help for /newcommand:",
+      "helpExamples": [
+        { "syntax": "example", "description": "What it does" }
+      ]
+    }
+  }
+}
+```
+
+2. **Create command file** (`src/commands/newcommand.ts`):
+```typescript
+import { SlashCommandBuilder, type ChatInputCommandInteraction } from "discord.js";
+import { handleDiceCommand, createDiceCommand } from "../utils/command-handler.js";
+import { parseNewExpression, executeNewExpression, formatNewResult } from "../utils/index.js";
+
+const commandConfig = createDiceCommand("newcommand");
+
+export default {
+  data: new SlashCommandBuilder()
+    .setName(commandConfig.name)
+    .setDescription(commandConfig.description)
+    .addStringOption(/* ... */),
+  async execute(interaction: ChatInputCommandInteraction) {
+    await handleDiceCommand(interaction, {
+      commandName: "newcommand",
+      parseFunction: parseNewExpression,
+      executeFunction: executeNewExpression,
+      formatFunction: formatNewResult,
+      validateParseResult: (result) => /* validation logic */
+    });
+  }
+};
+```
+
+This pattern eliminates code duplication and ensures consistency across all dice commands.
 
 ## Contributing
 

@@ -6,7 +6,7 @@ import {
 	parseRollExpression,
 	ExpressionState,
 	isCriticalFailure,
-} from "../utils/game.js";
+} from "../utils/index.js";
 
 describe("dice rolling functions", () => {
 	describe("rollDiceGroup", () => {

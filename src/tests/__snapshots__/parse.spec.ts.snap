@@ -1,0 +1,215 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`parser fixture tests > should produce stable output for: basic dice with modifier 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 2,
+            "sides": 6,
+          },
+          "operator": "+",
+        },
+        {
+          "group": {
+            "quantity": 0,
+            "sides": 3,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: complex dice with all modifiers 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "exploding": true,
+            "explodingNumber": 8,
+            "infinite": false,
+            "keepHighest": 3,
+            "quantity": 4,
+            "sides": 8,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "globalModifier": 2,
+  "targetNumber": 6,
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: empty input 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 1,
+            "sides": 6,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: invalid input 1`] = `
+{
+  "expressions": [],
+  "validationMessages": [
+    "Failed to parse dice group: invalidexpression",
+  ],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: maximum dice quantity 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 100,
+            "sides": 6,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: maximum dice sides 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 1,
+            "sides": 1000,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: multiple expressions with repetition 1`] = `
+{
+  "expressions": [
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 1,
+            "sides": 20,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 2,
+            "sides": 6,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 3,
+            "sides": 4,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 1,
+            "sides": 20,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 2,
+            "sides": 6,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+    {
+      "diceGroups": [
+        {
+          "group": {
+            "quantity": 3,
+            "sides": 4,
+          },
+          "operator": "+",
+        },
+      ],
+    },
+  ],
+  "validationMessages": [],
+}
+`;
+
+exports[`parser fixture tests > should produce stable output for: trait expression with modifiers 1`] = `
+{
+  "globalModifier": 2,
+  "targetHighest": 1,
+  "targetNumber": 4,
+  "traitDie": {
+    "exploding": true,
+    "explodingNumber": 8,
+    "infinite": true,
+    "quantity": 1,
+    "sides": 8,
+  },
+  "validationMessages": [],
+  "wildDie": {
+    "exploding": true,
+    "explodingNumber": 6,
+    "infinite": true,
+    "quantity": 1,
+    "sides": 6,
+  },
+}
+`;

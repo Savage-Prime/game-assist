@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatTraitResult } from "../utils/responses.js";
-import { ExpressionState, type FullTraitResult, type TraitDieResult, type DiceGroupResult } from "../utils/game.js";
+import { ExpressionState, type FullTraitResult, type TraitDieResult, type DiceGroupResult } from "../utils/index.js";
 
 describe("trait response formatting", () => {
 	// Helper function to create mock dice group results
@@ -25,7 +25,7 @@ describe("trait response formatting", () => {
 			isCriticalFailure: false,
 		};
 
-		const fullResult: FullTraitResult = { traitDieResult, rawExpression: "d8" };
+		const fullResult: FullTraitResult = { traitDieResult, grandTotal: 5, rawExpression: "d8" };
 
 		const formatted = formatTraitResult(fullResult);
 
@@ -52,6 +52,7 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = {
 			traitDieResult,
+			grandTotal: 8,
 			globalModifier: 2,
 			targetNumber: 6,
 			rawExpression: "d8+2 tn6",
@@ -79,7 +80,7 @@ describe("trait response formatting", () => {
 			isCriticalFailure: false,
 		};
 
-		const fullResult: FullTraitResult = { traitDieResult, rawExpression: "d8" };
+		const fullResult: FullTraitResult = { traitDieResult, grandTotal: 1, rawExpression: "d8" };
 
 		const formatted = formatTraitResult(fullResult);
 
@@ -104,6 +105,7 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = {
 			traitDieResult,
+			grandTotal: 3,
 			globalModifier: 2,
 			targetNumber: 6,
 			rawExpression: "d8+2 tn6",
@@ -138,6 +140,7 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = {
 			traitDieResult,
+			grandTotal: 3,
 			globalModifier: -2,
 			targetNumber: 6,
 			rawExpression: "d8-2 tn6",
@@ -166,6 +169,7 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = {
 			traitDieResult,
+			grandTotal: 10,
 			globalModifier: 2,
 			targetNumber: 6,
 			rawExpression: "d8+2 tn6",

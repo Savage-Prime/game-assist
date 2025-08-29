@@ -1,0 +1,75 @@
+{
+    "commands": {
+        "roll": {
+            "description": "Roll dice using an expression (e.g., 2d6, 1d8!!;1d6!! +1 tn4, 1d20+5, 5d6kh3, 2d6 x3)",
+            "parameterDescription": "Dice expression (e.g., 1d12+2d6+3, 1d4!!;1d6!! -2 tn4, 2d6 x3)",
+            "helpTitle": "Help for /roll command:",
+            "helpExamples": [
+                {
+                    "syntax": "1d20",
+                    "description": "Roll a 20-sided die"
+                },
+                {
+                    "syntax": "2d6+3",
+                    "description": "Roll two 6-sided dice and add 3"
+                },
+                {
+                    "syntax": "1d8!!",
+                    "description": "Roll a d8 with exploding dice"
+                },
+                {
+                    "syntax": "4d6kh3",
+                    "description": "Roll 4d6 and keep the highest 3"
+                },
+                {
+                    "syntax": "3d10 tn7",
+                    "description": "Roll 3d10 and count successes (7+)"
+                },
+                {
+                    "syntax": "1d6;1d8",
+                    "description": "Roll multiple expressions"
+                },
+                {
+                    "syntax": "2d6 x3",
+                    "description": "Repeat expression 3 times"
+                }
+            ]
+        },
+        "trait": {
+            "description": "Roll a Savage Worlds trait check with trait die + wild die (e.g., d8+1, 1d8 wd6 (+1) tn4)",
+            "parameterDescription": "Trait expression (e.g., d8+1, 1d10 wd6 tn8, d4 wd6 (+2) tn4)",
+            "helpTitle": "Help for /trait command:",
+            "helpExamples": [
+                {
+                    "syntax": "d8",
+                    "description": "Roll d8 trait die with d6 wild die"
+                },
+                {
+                    "syntax": "d8+1",
+                    "description": "Roll d8 trait die + d6 wild die with +1 modifier"
+                },
+                {
+                    "syntax": "1d10 wd6 tn8",
+                    "description": "Roll d10 trait + d6 wild against target 8"
+                },
+                {
+                    "syntax": "d4 wd6 (+2) tn4",
+                    "description": "Roll d4 trait + d6 wild with +2 modifier against target 4"
+                },
+                {
+                    "syntax": "d12 wd8 th1 (+1) tn6",
+                    "description": "Full notation with wild die override"
+                }
+            ]
+        }
+    },
+    "errors": {
+        "invalidExpression": "Invalid {type} expression: \"{input}\"",
+        "errorPrefix": "❌ Errors: ",
+        "warningPrefix": "⚠️ Warnings: "
+    },
+    "format": {
+        "helpIntro": "Use {type} expressions like:",
+        "bulletPoint": "• `{syntax}` - {description}"
+    }
+}
