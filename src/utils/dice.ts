@@ -1,5 +1,6 @@
 import { randomInt } from "./rng.js";
 import { ExpressionState } from "./enums.js";
+import { LIMITS, GAME_RULES } from "./constants.js";
 import type {
 	DiceGroup,
 	DiceGroupResult,
@@ -182,7 +183,7 @@ export async function rollParsedExpression(parsed: RollSpecification, rawExpress
 		if (isCriticalFailure(expressionResult)) {
 			expressionResult.state = ExpressionState.CriticalFailure;
 		} else if (parsed.targetNumber !== undefined) {
-			if (modifiedTotal >= parsed.targetNumber + 4) {
+			if (modifiedTotal >= parsed.targetNumber + GAME_RULES.RAISE_THRESHOLD) {
 				expressionResult.state = ExpressionState.Raise;
 			} else if (modifiedTotal >= parsed.targetNumber) {
 				expressionResult.state = ExpressionState.Success;
@@ -228,7 +229,7 @@ export function rollDice(
 		let r: number;
 		let attempts = 0;
 		let exploded = false;
-		const maxAttempts = 10; // Prevent infinite recursion
+		const maxAttempts = LIMITS.MAX_INFINITE_EXPLODES; // Prevent infinite recursion
 		do {
 			r = randomInt(1, sides);
 			total += r;
@@ -277,7 +278,7 @@ export function rollParsedTraitExpression(parsed: TraitSpecification, rawExpress
 	if (isCriticalFailure) {
 		state = ExpressionState.CriticalFailure;
 	} else if (parsed.targetNumber !== undefined) {
-		if (finalTotal >= parsed.targetNumber + 4) {
+		if (finalTotal >= parsed.targetNumber + GAME_RULES.RAISE_THRESHOLD) {
 			state = ExpressionState.Raise;
 		} else if (finalTotal >= parsed.targetNumber) {
 			state = ExpressionState.Success;
