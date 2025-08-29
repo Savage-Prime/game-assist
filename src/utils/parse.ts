@@ -4,7 +4,7 @@ import type { DiceGroup, RollSpecification, TraitSpecification } from "./types.j
 export function parseRollExpression(expression: string): RollSpecification {
 	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
 	let repetitionCount = 1;
-	const xMatch = expression.toLowerCase().match(/\s+x\s*(\d*)\s*$/);
+	const xMatch = expression.toLowerCase().match(/\s*x\s*(\d*)\s*$/);
 	if (xMatch) {
 		const countStr = xMatch[1];
 		if (countStr === "" || countStr === undefined) {
@@ -18,7 +18,7 @@ export function parseRollExpression(expression: string): RollSpecification {
 	}
 
 	// Remove the x pattern from the original expression before further processing
-	let expressionWithoutX = expression.replace(/\s+x\s*\d*\s*$/i, "");
+	let expressionWithoutX = expression.replace(/\s*x\s*\d*\s*$/i, "");
 
 	// Clean up the expression
 	const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();

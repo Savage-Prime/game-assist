@@ -13,7 +13,7 @@ export default {
 				.setRequired(true),
 		),
 	async execute(interaction: ChatInputCommandInteraction) {
-		const diceInput = interaction.options.getString("dice", true); // true makes it required
+		const diceInput = interaction.options.getString("dice", true);
 
 		// Parse the trait expression
 		const parsed = parseTraitExpression(diceInput);
