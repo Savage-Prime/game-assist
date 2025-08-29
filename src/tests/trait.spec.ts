@@ -290,9 +290,9 @@ describe("trait roll mechanics", () => {
 
 		it("should handle maximum possible die sizes", () => {
 			// Large dice
-			mockRandomInt.mockReturnValueOnce(50).mockReturnValueOnce(48);
+			mockRandomInt.mockReturnValueOnce(50).mockReturnValueOnce(18);
 
-			const parsed = parseTraitExpression("d100 wd50");
+			const parsed = parseTraitExpression("d100 wd20");
 			const result = rollParsedTraitExpression(parsed);
 
 			expect(result.traitDieResult.chosenResult).toBe("trait");
@@ -315,6 +315,21 @@ describe("trait roll mechanics", () => {
 			const result = rollParsedTraitExpression(parsed);
 
 			expect(result.grandTotal).toBe(7); // max(6+1, 4+1) = 7
+		});
+
+		it("should validate trait dice use only valid dice sides", () => {
+			const result1 = parseTraitExpression("d5");
+			expect(result1.validationMessages).toContain(
+				"Invalid trait die sides 5, must be one of: 4, 6, 8, 10, 12, 20, 100",
+			);
+
+			const result2 = parseTraitExpression("d8 wd50");
+			expect(result2.validationMessages).toContain(
+				"Invalid wild die sides 50, must be one of: 4, 6, 8, 10, 12, 20, 100",
+			);
+
+			const result3 = parseTraitExpression("d12 wd20");
+			expect(result3.validationMessages).toHaveLength(0); // Valid dice sides
 		});
 	});
 

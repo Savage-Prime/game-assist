@@ -1,6 +1,6 @@
 import { log } from "./diags.js";
 import type { DiceGroup, RollSpecification, TraitSpecification } from "./types.js";
-import { LIMITS, DEFAULTS } from "./constants.js";
+import { LIMITS, DEFAULTS, GAME_RULES } from "./constants.js";
 
 export function parseRollExpression(expression: string): RollSpecification {
 	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
@@ -360,7 +360,14 @@ export function parseTraitExpression(expression: string): TraitSpecification {
 	if (wildDieMatch && wildDieMatch[1]) {
 		const wildSides = parseInt(wildDieMatch[1]);
 		if (wildSides >= LIMITS.MIN_DICE_SIDES && wildSides <= LIMITS.MAX_WILD_DIE_SIDES) {
-			result.wildDie.sides = wildSides;
+			// Check if the wild die sides are in the valid dice sides list
+			if (GAME_RULES.VALID_DICE_SIDES.includes(wildSides as any)) {
+				result.wildDie.sides = wildSides;
+			} else {
+				addValidationMessage(
+					`Invalid wild die sides ${wildSides}, must be one of: ${GAME_RULES.VALID_DICE_SIDES.join(", ")}`,
+				);
+			}
 		} else {
 			addValidationMessage(
 				`Invalid wild die sides ${wildSides}, must be ${LIMITS.MIN_DICE_SIDES}-${LIMITS.MAX_WILD_DIE_SIDES}`,
@@ -384,7 +391,14 @@ export function parseTraitExpression(expression: string): TraitSpecification {
 
 		// Validate trait die sides
 		if (sides >= LIMITS.MIN_DICE_SIDES && sides <= LIMITS.MAX_TRAIT_DIE_SIDES) {
-			result.traitDie.sides = sides;
+			// Check if the trait die sides are in the valid dice sides list
+			if (GAME_RULES.VALID_DICE_SIDES.includes(sides as any)) {
+				result.traitDie.sides = sides;
+			} else {
+				addValidationMessage(
+					`Invalid trait die sides ${sides}, must be one of: ${GAME_RULES.VALID_DICE_SIDES.join(", ")}`,
+				);
+			}
 		} else {
 			addValidationMessage(
 				`Invalid trait die sides ${sides}, must be ${LIMITS.MIN_DICE_SIDES}-${LIMITS.MAX_TRAIT_DIE_SIDES}`,
