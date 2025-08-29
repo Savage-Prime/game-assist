@@ -1,5 +1,6 @@
 import { randomInt } from "./rng.js";
 import { ExpressionState } from "./enums.js";
+import { LIMITS, GAME_RULES } from "./constants.js";
 export function rollDiceGroup(group) {
     const result = { originalGroup: group, rolls: [], total: 0 };
     // Handle pure number modifiers (quantity: 0)
@@ -132,7 +133,7 @@ export async function rollParsedExpression(parsed, rawExpression) {
             expressionResult.state = ExpressionState.CriticalFailure;
         }
         else if (parsed.targetNumber !== undefined) {
-            if (modifiedTotal >= parsed.targetNumber + 4) {
+            if (modifiedTotal >= parsed.targetNumber + GAME_RULES.RAISE_THRESHOLD) {
                 expressionResult.state = ExpressionState.Raise;
             }
             else if (modifiedTotal >= parsed.targetNumber) {
@@ -169,7 +170,7 @@ export function rollDice(quantity, sides, exploding, explodingNumber, infinite, 
         let r;
         let attempts = 0;
         let exploded = false;
-        const maxAttempts = 10; // Prevent infinite recursion
+        const maxAttempts = LIMITS.MAX_INFINITE_EXPLODES; // Prevent infinite recursion
         do {
             r = randomInt(1, sides);
             total += r;
@@ -211,7 +212,7 @@ export function rollParsedTraitExpression(parsed, rawExpression) {
         state = ExpressionState.CriticalFailure;
     }
     else if (parsed.targetNumber !== undefined) {
-        if (finalTotal >= parsed.targetNumber + 4) {
+        if (finalTotal >= parsed.targetNumber + GAME_RULES.RAISE_THRESHOLD) {
             state = ExpressionState.Raise;
         }
         else if (finalTotal >= parsed.targetNumber) {

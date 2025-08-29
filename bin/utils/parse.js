@@ -1,4 +1,5 @@
 import { log } from "./diags.js";
+import { LIMITS, DEFAULTS, GAME_RULES } from "./constants.js";
 export function parseRollExpression(expression) {
     // Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
     let repetitionCount = 1;
@@ -49,7 +50,9 @@ export function parseRollExpression(expression) {
     });
     // Handle empty expression
     if (!workingExpression || workingExpression.trim() === "") {
-        result.expressions.push({ diceGroups: [{ group: { quantity: 1, sides: 6 }, operator: "+" }] });
+        result.expressions.push({
+            diceGroups: [{ group: { quantity: 1, sides: DEFAULTS.DICE_SIDES }, operator: "+" }],
+        });
         return result;
     }
     // Split by semicolons and commas to get separate expressions
@@ -102,13 +105,13 @@ export function parseRollExpression(expression) {
             }
         }
     }
-    // Validate total dice groups limit (100 max across all expressions)
+    // Validate total dice groups limit (LIMITS.MAX_DICE_GROUPS max across all expressions)
     const totalDiceGroups = result.expressions.reduce((total, expr) => {
         return (total +
             expr.diceGroups.filter((dg) => dg.group.quantity > 0).length);
     }, 0);
-    if (totalDiceGroups > 100) {
-        addValidationMessage(`Too many dice groups: ${totalDiceGroups}, maximum is 100`, {
+    if (totalDiceGroups > LIMITS.MAX_DICE_GROUPS) {
+        addValidationMessage(`Too many dice groups: ${totalDiceGroups}, maximum is ${LIMITS.MAX_DICE_GROUPS}`, {
             totalDiceGroups,
             repetitionCount,
             originalExpressions: result.expressions.length / (repetitionCount || 1),
@@ -126,7 +129,7 @@ function parseDiceGroup(part, addValidationMessage) {
     }
     // Parse dice notation: [quantity]d[sides][modifiers]
     let workingPart = part;
-    const group = { quantity: 1, sides: 6 };
+    const group = { quantity: 1, sides: DEFAULTS.DICE_SIDES };
     // Extract exploding dice first (!!, !, !>n)
     const explodingMatch = workingPart.match(/!!?(?:>(\d+))?/);
     if (explodingMatch) {
@@ -164,15 +167,12 @@ function parseDiceGroup(part, addValidationMessage) {
         group.quantity = diceMatch[1] ? parseInt(diceMatch[1]) : 1;
         group.sides = parseInt(diceMatch[2]);
         // Validate dice parameters
-        if (group.quantity < 1 || group.quantity > 100) {
-            addValidationMessage(`Invalid quantity ${group.quantity}, must be 1-100`, {
-                quantity: group.quantity,
-                part,
-            });
+        if (group.quantity < LIMITS.MIN_DICE_QUANTITY || group.quantity > LIMITS.MAX_DICE_QUANTITY) {
+            addValidationMessage(`Invalid quantity ${group.quantity}, must be ${LIMITS.MIN_DICE_QUANTITY}-${LIMITS.MAX_DICE_QUANTITY}`, { quantity: group.quantity, part });
             return null;
         }
-        if (group.sides < 2 || group.sides > 1000) {
-            addValidationMessage(`Invalid sides ${group.sides}, must be 2-1000`, { sides: group.sides, part });
+        if (group.sides < LIMITS.MIN_DICE_SIDES || group.sides > LIMITS.MAX_DICE_SIDES) {
+            addValidationMessage(`Invalid sides ${group.sides}, must be ${LIMITS.MIN_DICE_SIDES}-${LIMITS.MAX_DICE_SIDES}`, { sides: group.sides, part });
             return null;
         }
         // Set default exploding number if exploding but no specific number set
@@ -181,8 +181,8 @@ function parseDiceGroup(part, addValidationMessage) {
         }
         // Validate exploding number
         if (group.exploding && group.explodingNumber !== undefined) {
-            if (group.explodingNumber < 2 || group.explodingNumber > group.sides) {
-                addValidationMessage(`Invalid exploding number ${group.explodingNumber}, must be 2-${group.sides}, disabling explosions`, { explodingNumber: group.explodingNumber, sides: group.sides, part });
+            if (group.explodingNumber < LIMITS.MIN_DICE_SIDES || group.explodingNumber > group.sides) {
+                addValidationMessage(`Invalid exploding number ${group.explodingNumber}, must be ${LIMITS.MIN_DICE_SIDES}-${group.sides}, disabling explosions`, { explodingNumber: group.explodingNumber, sides: group.sides, part });
                 group.exploding = false;
                 delete group.explodingNumber;
             }
@@ -244,8 +244,8 @@ function parseDiceGroup(part, addValidationMessage) {
     if (finalNumberMatch && finalNumberMatch[1]) {
         const modifier = parseInt(finalNumberMatch[1]);
         // Validate modifier range
-        if (modifier < 1 || modifier > 1000) {
-            addValidationMessage(`Invalid modifier ${modifier}, must be 1-1000`, { modifier, part });
+        if (modifier < LIMITS.MIN_MODIFIER || modifier > LIMITS.MAX_MODIFIER) {
+            addValidationMessage(`Invalid modifier ${modifier}, must be ${LIMITS.MIN_MODIFIER}-${LIMITS.MAX_MODIFIER}`, { modifier, part });
             return null;
         }
         return { quantity: 0, sides: modifier };
@@ -259,10 +259,10 @@ export function parseTraitExpression(expression) {
     const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
     // Initialize result with defaults
     const result = {
-        traitDie: { quantity: 1, sides: 4 }, // default d4
-        wildDie: { quantity: 1, sides: 6 }, // default d6
+        traitDie: { quantity: 1, sides: DEFAULTS.TRAIT_DIE_SIDES }, // default d4
+        wildDie: { quantity: 1, sides: DEFAULTS.TRAIT_WILD_DIE_SIDES }, // default d6
         targetHighest: 1,
-        targetNumber: 4, // default target number for trait rolls
+        targetNumber: DEFAULTS.TRAIT_TARGET_NUMBER, // default target number for trait rolls
         validationMessages: [],
     };
     // Helper function to add validation messages
@@ -287,11 +287,17 @@ export function parseTraitExpression(expression) {
     const wildDieMatch = workingExpression.match(/wd(\d+)/);
     if (wildDieMatch && wildDieMatch[1]) {
         const wildSides = parseInt(wildDieMatch[1]);
-        if (wildSides >= 2 && wildSides <= 100) {
-            result.wildDie.sides = wildSides;
+        if (wildSides >= LIMITS.MIN_DICE_SIDES && wildSides <= LIMITS.MAX_WILD_DIE_SIDES) {
+            // Check if the wild die sides are in the valid dice sides list
+            if (GAME_RULES.VALID_DICE_SIDES.includes(wildSides)) {
+                result.wildDie.sides = wildSides;
+            }
+            else {
+                addValidationMessage(`Invalid wild die sides ${wildSides}, must be one of: ${GAME_RULES.VALID_DICE_SIDES.join(", ")}`);
+            }
         }
         else {
-            addValidationMessage(`Invalid wild die sides ${wildSides}, must be 2-100`);
+            addValidationMessage(`Invalid wild die sides ${wildSides}, must be ${LIMITS.MIN_DICE_SIDES}-${LIMITS.MAX_WILD_DIE_SIDES}`);
         }
         workingExpression = workingExpression.replace(/wd\d+/, "");
     }
@@ -307,11 +313,17 @@ export function parseTraitExpression(expression) {
             addValidationMessage(`Trait die quantity must be 1, got ${quantity}`);
         }
         // Validate trait die sides
-        if (sides >= 2 && sides <= 100) {
-            result.traitDie.sides = sides;
+        if (sides >= LIMITS.MIN_DICE_SIDES && sides <= LIMITS.MAX_TRAIT_DIE_SIDES) {
+            // Check if the trait die sides are in the valid dice sides list
+            if (GAME_RULES.VALID_DICE_SIDES.includes(sides)) {
+                result.traitDie.sides = sides;
+            }
+            else {
+                addValidationMessage(`Invalid trait die sides ${sides}, must be one of: ${GAME_RULES.VALID_DICE_SIDES.join(", ")}`);
+            }
         }
         else {
-            addValidationMessage(`Invalid trait die sides ${sides}, must be 2-100`);
+            addValidationMessage(`Invalid trait die sides ${sides}, must be ${LIMITS.MIN_DICE_SIDES}-${LIMITS.MAX_TRAIT_DIE_SIDES}`);
         }
         // Handle inline modifier as global modifier (gets priority)
         if (modifier !== undefined) {
