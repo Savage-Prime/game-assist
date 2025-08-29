@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseRollExpression } from "../utils/game.js";
+import { parseRollExpression } from "../utils/index.js";
 describe("parseRollExpression", () => {
     describe("basic parsing", () => {
         it("should parse simple dice expression", () => {

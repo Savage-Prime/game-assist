@@ -1,4 +1,4 @@
-import { ExpressionState, isFullRollCriticalFailure } from "./game.js";
+import { ExpressionState, isFullRollCriticalFailure } from "./index.js";
 /**
  * Formats the result of a roll command using unified linear format
  * Pattern: dice [rolls] modifiers = **result** [state]

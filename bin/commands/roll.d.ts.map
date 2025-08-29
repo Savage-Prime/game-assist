@@ -1,1 +1,1 @@
-{"version":3,"file":"roll.d.ts","sourceRoot":"","sources":["../../src/commands/roll.ts"],"names":[],"mappings":"AAAA,OAAO,EAAuB,KAAK,2BAA2B,EAAE,MAAM,YAAY,CAAC;;;yBAcvD,2BAA2B;;AAVvD,wBAkDE"}
+{"version":3,"file":"roll.d.ts","sourceRoot":"","sources":["../../src/commands/roll.ts"],"names":[],"mappings":"AAAA,OAAO,EAAuB,KAAK,2BAA2B,EAAE,MAAM,YAAY,CAAC;;;yBAgBvD,2BAA2B;;AAPvD,wBAgBE"}

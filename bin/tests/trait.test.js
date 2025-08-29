@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseTraitExpression, rollParsedTraitExpression, ExpressionState } from "../utils/game.js";
+import { parseTraitExpression, rollParsedTraitExpression, ExpressionState } from "../utils/index.js";
 describe("trait rolling functions", () => {
     describe("parseTraitExpression", () => {
         it("should parse basic trait expression", () => {

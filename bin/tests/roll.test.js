@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { rollDiceGroup, rollExpression, rollParsedExpression, parseRollExpression, ExpressionState, isCriticalFailure, } from "../utils/game.js";
+import { rollDiceGroup, rollExpression, rollParsedExpression, parseRollExpression, ExpressionState, isCriticalFailure, } from "../utils/index.js";
 describe("dice rolling functions", () => {
     describe("rollDiceGroup", () => {
         it("should roll basic dice", () => {

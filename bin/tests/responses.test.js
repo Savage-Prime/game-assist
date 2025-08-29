@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatRollResult } from "../utils/responses.js";
-import { ExpressionState } from "../utils/game.js";
+import { ExpressionState } from "../utils/index.js";
 describe("formatRollResult", () => {
     describe("basic rolls without target number", () => {
         it("should format a simple single dice roll", () => {

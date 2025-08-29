@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatTraitResult } from "../utils/responses.js";
-import { ExpressionState } from "../utils/game.js";
+import { ExpressionState } from "../utils/index.js";
 describe("trait response formatting", () => {
     // Helper function to create mock dice group results
     const createMockDiceGroupResult = (sides, rolls) => ({
@@ -21,7 +21,7 @@ describe("trait response formatting", () => {
             state: ExpressionState.NotApplicable,
             isCriticalFailure: false,
         };
-        const fullResult = { traitDieResult, rawExpression: "d8" };
+        const fullResult = { traitDieResult, grandTotal: 5, rawExpression: "d8" };
         const formatted = formatTraitResult(fullResult);
         expect(formatted).toContain("> 🎲 *d8*");
         expect(formatted).toContain("Trait Die: 1d8 [5] = **5**");
@@ -43,6 +43,7 @@ describe("trait response formatting", () => {
         };
         const fullResult = {
             traitDieResult,
+            grandTotal: 8,
             globalModifier: 2,
             targetNumber: 6,
             rawExpression: "d8+2 tn6",
@@ -65,7 +66,7 @@ describe("trait response formatting", () => {
             state: ExpressionState.NotApplicable,
             isCriticalFailure: false,
         };
-        const fullResult = { traitDieResult, rawExpression: "d8" };
+        const fullResult = { traitDieResult, grandTotal: 1, rawExpression: "d8" };
         const formatted = formatTraitResult(fullResult);
         expect(formatted).toContain("Trait Die: 1d8 [9!] = **9**");
         expect(formatted).toContain("Wild Die: 1d6 [8!] = **8** discarded");
@@ -85,6 +86,7 @@ describe("trait response formatting", () => {
         };
         const fullResult = {
             traitDieResult,
+            grandTotal: 3,
             globalModifier: 2,
             targetNumber: 6,
             rawExpression: "d8+2 tn6",
@@ -114,6 +116,7 @@ describe("trait response formatting", () => {
         };
         const fullResult = {
             traitDieResult,
+            grandTotal: 3,
             globalModifier: -2,
             targetNumber: 6,
             rawExpression: "d8-2 tn6",
@@ -137,6 +140,7 @@ describe("trait response formatting", () => {
         };
         const fullResult = {
             traitDieResult,
+            grandTotal: 10,
             globalModifier: 2,
             targetNumber: 6,
             rawExpression: "d8+2 tn6",
