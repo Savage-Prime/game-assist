@@ -12,10 +12,6 @@ export default defineConfig({
 		hookTimeout: 30000,
 		// Run tests sequentially to avoid interference
 		pool: "forks",
-		poolOptions: {
-			forks: {
-				singleFork: true,
-			},
-		},
+		poolOptions: { forks: { singleFork: true } },
 	},
 });
