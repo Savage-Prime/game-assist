@@ -27,3 +27,7 @@ export {
 	isCriticalFailure,
 	isFullRollCriticalFailure,
 } from "./dice.js";
+
+// Command utilities
+export { handleDiceCommand, createDiceCommand } from "./command-handler.js";
+export { formatErrorMessage, formatWarningMessage, formatHelpText, getCommandConfig } from "./messages.js";
