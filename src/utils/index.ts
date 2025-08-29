@@ -1,6 +1,9 @@
 // Re-export all public API from separated modules
 export { ExpressionState } from "./enums.js";
 
+// Constants
+export * from "./constants.js";
+
 // Consolidated interfaces (preferred)
 export type {
 	DiceGroup,
