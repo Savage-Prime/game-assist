@@ -54,6 +54,7 @@ export const GAME_RULES = {
 	// Game mechanics constants
 	RAISE_THRESHOLD: 4, // Amount above target number required for a "raise"
 	VALID_DICE_SIDES: [4, 6, 8, 10, 12, 20, 100] as const, // Valid dice sides for trait dice
+	MIN_CRITICAL_FAILURE_DICE: 2, // Minimum number of dice rolled to trigger critical failure
 } as const;
 
 // Commands that should appear in the help system
