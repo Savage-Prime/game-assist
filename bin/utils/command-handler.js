@@ -2,7 +2,7 @@ import { formatErrorMessage, formatWarningMessage, getCommandConfig } from "./me
 /**
  * Generic command handler that implements the common pattern:
  * 1. Parse input
- * 2. Check for errors and show help if invalid
+ * 2. Check for errors and show help if invalid (ephemeral response)
  * 3. Show warnings if present but valid
  * 4. Execute the operation
  * 5. Format the response
