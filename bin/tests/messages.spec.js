@@ -57,7 +57,7 @@ describe("Command Messages", () => {
             // Should include all available commands with new format
             for (const commandName of availableCommands) {
                 expect(helpText).toContain(`**/${commandName}**`);
-                expect(helpText).toContain("&mdash;");
+                expect(helpText).toContain("—"); // em dash
             }
         });
     });
@@ -71,22 +71,24 @@ describe("Command Messages", () => {
                 expect(helpText).toContain(config.helpTitle);
                 expect(helpText).toContain(messages.format.formulaHeader);
                 expect(helpText).toContain(config.formula);
-                if (config.components && config.components.length > 0) {
-                    expect(helpText).toContain(messages.format.componentsHeader);
-                }
+                // Should always have examples (limited to 6 for space)
                 if (config.examples && config.examples.length > 0) {
                     expect(helpText).toContain(messages.format.examplesHeader);
-                    // Check that all examples are included
-                    for (const example of config.examples) {
-                        expect(helpText).toContain(example.syntax);
-                        expect(helpText).toContain(example.description);
+                    // Check that some examples are included (at least the first one)
+                    const firstExample = config.examples[0];
+                    if (firstExample) {
+                        expect(helpText).toContain(firstExample.syntax);
+                        expect(helpText).toContain(firstExample.description);
                     }
                 }
+                // Should have quick reference if available
                 if (config.quickReference) {
                     expect(helpText).toContain(messages.format.quickRefHeader);
                 }
                 // Should contain the related command footer
                 expect(helpText).toContain("🔗 **Related:**");
+                // Should be within Discord's character limit
+                expect(helpText.length).toBeLessThanOrEqual(2000);
             }
         });
         it("should handle invalid command gracefully", () => {

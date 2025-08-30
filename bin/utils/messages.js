@@ -24,7 +24,7 @@ export function formatOverviewHelp() {
     for (const commandName of commands) {
         const config = getCommandConfig(commandName);
         if (config) {
-            helpText += `**/${commandName}** &mdash; ${config.description}\n`;
+            helpText += `**/${commandName}** — ${config.description}\n`;
             helpText += `    \`${config.formula}\`\n\n`;
         }
     }
@@ -57,34 +57,22 @@ export function formatDetailedCommandHelp(commandName) {
     let helpText = `**${config.helpTitle}**\n${config.description}\n\n`;
     // Add formula
     helpText += `${format.formulaHeader}\n${format.formulaFormat.replace("{formula}", config.formula)}\n`;
-    // Add components
-    if (config.components && config.components.length > 0) {
-        helpText += `${format.componentsHeader}\n`;
-        for (const component of config.components) {
-            const optionalText = component.optional ? format.componentOptional : format.componentRequired;
-            helpText +=
-                format.componentFormat
-                    .replace("{name}", component.name)
-                    .replace("{optional}", optionalText)
-                    .replace("{description}", component.description) + "\n";
-        }
-        helpText += "\n";
-    }
-    // Add examples
+    // Add key examples (show all for roll command, limit others to save space)
     if (config.examples && config.examples.length > 0) {
         helpText += `${format.examplesHeader}\n`;
-        for (const example of config.examples) {
-            helpText +=
-                format.bulletPoint.replace("{syntax}", example.syntax).replace("{description}", example.description) +
-                    "\n";
+        // Show all examples for roll command, limit others to 6
+        const maxExamples = commandName === "roll" ? config.examples.length : 6;
+        const examplesList = config.examples.slice(0, maxExamples);
+        for (const example of examplesList) {
+            helpText += `• \`${example.syntax}\` - ${example.description}\n`;
         }
         helpText += "\n";
     }
-    // Add quick reference if available
+    // Add compact quick reference if available
     if (config.quickReference) {
         helpText += `${format.quickRefHeader}\n`;
         for (const [key, value] of Object.entries(config.quickReference)) {
-            helpText += format.quickRefFormat.replace("{key}", key).replace("{value}", value) + "\n";
+            helpText += `• **${key}** - ${value}\n`;
         }
     }
     helpText += format.commandDetailedHelp;
