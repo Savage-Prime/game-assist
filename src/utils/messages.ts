@@ -126,24 +126,27 @@ export function formatDetailedCommandHelp(commandName: string): string {
 	// Add formula
 	helpText += `${format.formulaHeader}\n${format.formulaFormat.replace("{formula}", config.formula)}\n`;
 
-	// Add key examples (show all for roll command, limit others to save space)
-	if (config.examples && config.examples.length > 0) {
-		helpText += `${format.examplesHeader}\n`;
-		// Show all examples for roll command, limit others to 6
-		const maxExamples = commandName === "roll" ? config.examples.length : 6;
-		const examplesList = config.examples.slice(0, maxExamples);
-		for (const example of examplesList) {
-			helpText += `• \`${example.syntax}\` - ${example.description}\n`;
+	// Add components if available
+	if (config.components && config.components.length > 0) {
+		helpText += `${format.componentsHeader}\n`;
+		for (const component of config.components) {
+			const optionalText = component.optional ? format.componentOptional : format.componentRequired;
+			helpText +=
+				format.componentFormat
+					.replace("{name}", component.name)
+					.replace("{optional}", optionalText)
+					.replace("{description}", component.description) + "\n";
 		}
 		helpText += "\n";
 	}
 
-	// Add compact quick reference if available
-	if (config.quickReference) {
-		helpText += `${format.quickRefHeader}\n`;
-		for (const [key, value] of Object.entries(config.quickReference)) {
-			helpText += `• **${key}** - ${value}\n`;
+	// Add all examples (focus on quality over arbitrary limits)
+	if (config.examples && config.examples.length > 0) {
+		helpText += `${format.examplesHeader}\n`;
+		for (const example of config.examples) {
+			helpText += `• \`${example.syntax}\` - ${example.description}\n`;
 		}
+		helpText += "\n";
 	}
 
 	helpText += format.commandDetailedHelp;
