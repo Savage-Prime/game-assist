@@ -1,13 +1,33 @@
 import { describe, it, expect } from "vitest";
-import { formatErrorMessage, formatWarningMessage, formatHelpText, getCommandConfig } from "../utils/messages.js";
+import {
+	formatErrorMessage,
+	formatWarningMessage,
+	formatDetailedCommandHelp,
+	formatOverviewHelp,
+	getCommandConfig,
+	getAvailableCommands,
+} from "../utils/messages.js";
+import messages from "../utils/messages.json" with { type: "json" };
 
 describe("Command Messages", () => {
 	describe("getCommandConfig", () => {
 		it("should return config for valid command", () => {
 			const config = getCommandConfig("roll");
 			expect(config).toBeDefined();
-			expect(config?.description).toContain("Roll dice using an expression");
-			expect(config?.helpExamples).toHaveLength(7);
+			expect(config?.description).toBeDefined();
+			expect(config?.formula).toBeDefined();
+			expect(config?.examples).toBeDefined();
+			expect(Array.isArray(config?.examples)).toBe(true);
+			expect(config?.examples.length).toBeGreaterThan(0);
+		});
+
+		it("should return config for trait command", () => {
+			const config = getCommandConfig("trait");
+			expect(config).toBeDefined();
+			expect(config?.description).toBeDefined();
+			expect(config?.formula).toBeDefined();
+			expect(config?.examples).toBeDefined();
+			expect(Array.isArray(config?.examples)).toBe(true);
 		});
 
 		it("should return null for invalid command", () => {
@@ -16,41 +36,109 @@ describe("Command Messages", () => {
 		});
 	});
 
-	describe("formatHelpText", () => {
-		it("should format help text for roll command", () => {
-			const helpText = formatHelpText("roll");
-			expect(helpText).toContain("**Help for /roll command:**");
-			expect(helpText).toContain("Use roll expressions like:");
-			expect(helpText).toContain("• `1d20` - Roll a 20-sided die");
-			expect(helpText).toContain("• `2d6 x3` - Repeat expression 3 times");
+	describe("formatOverviewHelp", () => {
+		it("should format overview help text with configured content", () => {
+			const helpText = formatOverviewHelp();
+			const availableCommands = getAvailableCommands();
+
+			// Should contain help structure from configuration
+			expect(helpText).toContain(messages.help.title);
+			expect(helpText).toContain(messages.help.commandListIntro);
+			expect(helpText).toContain(messages.help.detailedHelpPrompt);
+
+			// Should include all available commands
+			for (const commandName of availableCommands) {
+				expect(helpText).toContain(`**/${commandName}**`);
+			}
+		});
+	});
+
+	describe("formatDetailedCommandHelp", () => {
+		it("should format detailed help for all valid commands using configuration", () => {
+			const availableCommands = getAvailableCommands();
+
+			for (const commandName of availableCommands) {
+				const helpText = formatDetailedCommandHelp(commandName);
+				const config = getCommandConfig(commandName);
+
+				// Should contain the command's configured content
+				expect(helpText).toContain(config!.helpTitle);
+				expect(helpText).toContain(messages.format.formulaHeader);
+				expect(helpText).toContain(config!.formula);
+
+				if (config!.components && config!.components.length > 0) {
+					expect(helpText).toContain(messages.format.componentsHeader);
+				}
+
+				if (config!.examples && config!.examples.length > 0) {
+					expect(helpText).toContain(messages.format.examplesHeader);
+					// Check that all examples are included
+					for (const example of config!.examples) {
+						expect(helpText).toContain(example.syntax);
+						expect(helpText).toContain(example.description);
+					}
+				}
+
+				if (config!.quickReference) {
+					expect(helpText).toContain(messages.format.quickRefHeader);
+				}
+
+				// Should contain the related command footer
+				expect(helpText).toContain("🔗 **Related:**");
+			}
 		});
 
-		it("should format help text for trait command", () => {
-			const helpText = formatHelpText("trait");
-			expect(helpText).toContain("**Help for /trait command:**");
-			expect(helpText).toContain("Use trait expressions like:");
-			expect(helpText).toContain("• `d8` - Roll d8 trait die with d6 wild die");
-		});
-
-		it("should handle invalid command", () => {
-			const helpText = formatHelpText("invalid");
-			expect(helpText).toBe("No help available for command: invalid");
+		it("should handle invalid command gracefully", () => {
+			const helpText = formatDetailedCommandHelp("invalid");
+			expect(helpText).toContain("❌ **Unknown command:** `invalid`");
+			expect(helpText).toContain("Use `/help` to see all available commands");
 		});
 	});
 
 	describe("formatErrorMessage", () => {
 		it("should format error message without validation messages", () => {
 			const errorMsg = formatErrorMessage("roll", "invalid", []);
-			expect(errorMsg).toContain('Invalid roll expression: "invalid"');
-			expect(errorMsg).toContain("**Help for /roll command:**");
-			expect(errorMsg).not.toContain("❌ Errors:");
+
+			// Should contain error structure from configuration
+			expect(errorMsg).toContain("❌ **Invalid roll expression:** `invalid`");
+			expect(errorMsg).not.toContain(messages.errors.errorPrefix);
+
+			// Should include the command's help content
+			const config = getCommandConfig("roll");
+			expect(errorMsg).toContain(config!.helpTitle);
 		});
 
 		it("should format error message with validation messages", () => {
-			const errorMsg = formatErrorMessage("roll", "2d0", ["Die sides must be at least 1"]);
-			expect(errorMsg).toContain('Invalid roll expression: "2d0"');
-			expect(errorMsg).toContain("❌ Errors: Die sides must be at least 1");
-			expect(errorMsg).toContain("**Help for /roll command:**");
+			const validationMessages = ["Die sides must be at least 1", "Another error"];
+			const errorMsg = formatErrorMessage("roll", "2d0", validationMessages);
+
+			// Should contain error structure from configuration
+			expect(errorMsg).toContain("❌ **Invalid roll expression:** `2d0`");
+			expect(errorMsg).toContain(messages.errors.errorPrefix.trim());
+
+			// Should include all validation messages
+			for (const message of validationMessages) {
+				expect(errorMsg).toContain(`• ${message}`);
+			}
+
+			// Should include the command's help content
+			const config = getCommandConfig("roll");
+			expect(errorMsg).toContain(config!.helpTitle);
+
+			// Should include the tip footer
+			expect(errorMsg).toContain("💡 **Tip:**");
+		});
+
+		it("should work with different command types", () => {
+			const availableCommands = getAvailableCommands();
+
+			for (const commandName of availableCommands) {
+				const errorMsg = formatErrorMessage(commandName, "invalid", ["Test error"]);
+				expect(errorMsg).toContain(`❌ **Invalid ${commandName} expression:** \`invalid\``);
+
+				const config = getCommandConfig(commandName);
+				expect(errorMsg).toContain(config!.helpTitle);
+			}
 		});
 	});
 
@@ -60,14 +148,21 @@ describe("Command Messages", () => {
 			expect(warningMsg).toBe("");
 		});
 
-		it("should format single warning", () => {
-			const warningMsg = formatWarningMessage(["Large number of dice"]);
-			expect(warningMsg).toBe("⚠️ Warnings: Large number of dice\n");
+		it("should format single warning with configured prefix", () => {
+			const warnings = ["Large number of dice"];
+			const warningMsg = formatWarningMessage(warnings);
+			expect(warningMsg).toContain(messages.errors.warningPrefix.trim());
+			expect(warningMsg).toContain("• Large number of dice");
 		});
 
-		it("should format multiple warnings", () => {
-			const warningMsg = formatWarningMessage(["Warning 1", "Warning 2"]);
-			expect(warningMsg).toBe("⚠️ Warnings: Warning 1, Warning 2\n");
+		it("should format multiple warnings with configured format", () => {
+			const warnings = ["Warning 1", "Warning 2", "Warning 3"];
+			const warningMsg = formatWarningMessage(warnings);
+			expect(warningMsg).toContain(messages.errors.warningPrefix.trim());
+
+			for (const warning of warnings) {
+				expect(warningMsg).toContain(`• ${warning}`);
+			}
 		});
 	});
 });

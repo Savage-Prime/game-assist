@@ -1,16 +1,58 @@
 import messages from "./messages.json" with { type: "json" };
 
+export interface ComponentSpec {
+	name: string;
+	optional: boolean;
+	description: string;
+	examples: string[];
+}
+
 export interface CommandConfig {
 	description: string;
 	parameterDescription: string;
+	formula: string;
 	helpTitle: string;
-	helpExamples: Array<{ syntax: string; description: string }>;
+	components: ComponentSpec[];
+	examples: Array<{ syntax: string; description: string }>;
+	quickReference?: Record<string, string>;
+}
+
+export interface HelpConfig {
+	title: string;
+	description: string;
+	commandListIntro: string;
+	commandFormat: string;
+	detailedHelpPrompt: string;
+}
+
+export interface ErrorConfig {
+	invalidExpression: string;
+	errorPrefix: string;
+	warningPrefix: string;
+	noCommandFound: string;
+	helpFooter: string;
+}
+
+export interface FormatConfig {
+	helpIntro: string;
+	bulletPoint: string;
+	formulaHeader: string;
+	formulaFormat: string;
+	componentsHeader: string;
+	componentFormat: string;
+	componentOptional: string;
+	componentRequired: string;
+	examplesHeader: string;
+	quickRefHeader: string;
+	quickRefFormat: string;
+	commandDetailedHelp: string;
 }
 
 export interface MessageTemplates {
+	help: HelpConfig;
 	commands: Record<string, CommandConfig>;
-	errors: { invalidExpression: string; errorPrefix: string; warningPrefix: string };
-	format: { helpIntro: string; bulletPoint: string };
+	errors: ErrorConfig;
+	format: FormatConfig;
 }
 
 /**
@@ -22,54 +64,130 @@ export function getCommandConfig(commandName: string): CommandConfig | null {
 }
 
 /**
- * Format help text for a command with its examples
+ * Get all available command names (excluding 'help' from the main list)
  */
-export function formatHelpText(commandName: string): string {
-	const config = getCommandConfig(commandName);
-	if (!config) {
-		return `No help available for command: ${commandName}`;
+export function getAvailableCommands(): string[] {
+	return Object.keys((messages as MessageTemplates).commands).filter((cmd) => cmd !== "help");
+}
+
+/**
+ * Format overview help text showing all commands
+ */
+export function formatOverviewHelp(): string {
+	const helpConfig = (messages as MessageTemplates).help;
+	const commands = getAvailableCommands();
+
+	let helpText = `${helpConfig.title}\n${helpConfig.description}\n\n${helpConfig.commandListIntro}\n`;
+
+	for (const commandName of commands) {
+		const config = getCommandConfig(commandName);
+		if (config) {
+			helpText +=
+				helpConfig.commandFormat.replace("{name}", commandName).replace("{description}", config.description) +
+				"\n";
+		}
 	}
 
-	let helpText = `\n\n**${config.helpTitle}**\n`;
-	helpText += `${messages.format.helpIntro.replace("{type}", commandName)}\n`;
-
-	for (const example of config.helpExamples) {
-		helpText +=
-			messages.format.bulletPoint
-				.replace("{syntax}", example.syntax)
-				.replace("{description}", example.description) + "\n";
-	}
-
+	helpText += `\n${helpConfig.detailedHelpPrompt}`;
 	return helpText;
 }
 
 /**
- * Format error message with help text
+ * Format detailed help text for a specific command
  */
-export function formatErrorMessage(commandName: string, input: string, validationMessages: string[]): string {
-	let errorMsg = messages.errors.invalidExpression.replace("{type}", commandName).replace("{input}", input);
+export function formatDetailedCommandHelp(commandName: string): string {
+	const config = getCommandConfig(commandName);
+	const format = (messages as MessageTemplates).format;
 
-	if (validationMessages.length > 0) {
-		errorMsg += `\n${messages.errors.errorPrefix}${validationMessages.join(", ")}`;
+	if (!config) {
+		return (messages as MessageTemplates).errors.noCommandFound.replace("{command}", commandName);
 	}
 
-	errorMsg += formatHelpText(commandName);
+	let helpText = `**${config.helpTitle}**\n${config.description}\n\n`;
+
+	// Add formula
+	helpText += `${format.formulaHeader}\n${format.formulaFormat.replace("{formula}", config.formula)}\n`;
+
+	// Add components
+	if (config.components && config.components.length > 0) {
+		helpText += `${format.componentsHeader}\n`;
+		for (const component of config.components) {
+			const optionalText = component.optional ? format.componentOptional : format.componentRequired;
+			helpText +=
+				format.componentFormat
+					.replace("{name}", component.name)
+					.replace("{optional}", optionalText)
+					.replace("{description}", component.description) + "\n";
+		}
+		helpText += "\n";
+	}
+
+	// Add examples
+	if (config.examples && config.examples.length > 0) {
+		helpText += `${format.examplesHeader}\n`;
+		for (const example of config.examples) {
+			helpText +=
+				format.bulletPoint.replace("{syntax}", example.syntax).replace("{description}", example.description) +
+				"\n";
+		}
+		helpText += "\n";
+	}
+
+	// Add quick reference if available
+	if (config.quickReference) {
+		helpText += `${format.quickRefHeader}\n`;
+		for (const [key, value] of Object.entries(config.quickReference)) {
+			helpText += format.quickRefFormat.replace("{key}", key).replace("{value}", value) + "\n";
+		}
+	}
+
+	helpText += format.commandDetailedHelp;
+	return helpText;
+}
+
+/**
+ * Format help text for a command with its examples (backward compatibility)
+ */
+export function formatHelpText(commandName: string): string {
+	return formatDetailedCommandHelp(commandName);
+}
+
+/**
+ * Format error message with enhanced help text
+ */
+export function formatErrorMessage(commandName: string, input: string, validationMessages: string[]): string {
+	const errors = (messages as MessageTemplates).errors;
+
+	let errorMsg = errors.invalidExpression.replace("{type}", commandName).replace("{input}", input);
+
+	if (validationMessages.length > 0) {
+		errorMsg += `\n${errors.errorPrefix}`;
+		for (const message of validationMessages) {
+			errorMsg += `• ${message}\n`;
+		}
+	}
+
+	// Add detailed help for the specific command
+	errorMsg += "\n" + formatDetailedCommandHelp(commandName);
+	errorMsg += errors.helpFooter.replace("{command}", commandName);
+
 	return errorMsg;
 }
 
 /**
- * Format warning message
+ * Format warning message with enhanced formatting
  */
 export function formatWarningMessage(validationMessages: string[]): string {
 	if (validationMessages.length === 0) {
 		return "";
 	}
-	return `${messages.errors.warningPrefix}${validationMessages.join(", ")}\n`;
-}
 
-/**
- * Get all available command names
- */
-export function getAvailableCommands(): string[] {
-	return Object.keys((messages as MessageTemplates).commands);
+	const errors = (messages as MessageTemplates).errors;
+	let warningMsg = errors.warningPrefix;
+
+	for (const message of validationMessages) {
+		warningMsg += `• ${message}\n`;
+	}
+
+	return warningMsg;
 }
