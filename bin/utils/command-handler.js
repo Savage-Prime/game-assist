@@ -15,7 +15,7 @@ export async function handleDiceCommand(interaction, config) {
     // Step 2: Check for errors and show help if invalid
     if (!config.validateParseResult(parseResult)) {
         const errorMessage = formatErrorMessage(config.commandName, input, parseResult.validationMessages);
-        await interaction.reply(errorMessage);
+        await interaction.reply({ content: errorMessage, flags: 1 << 6 }); // MessageFlags.Ephemeral
         return;
     }
     // Step 3: Show warnings if present but valid
