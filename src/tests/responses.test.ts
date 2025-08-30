@@ -351,7 +351,7 @@ describe("formatRollResult", () => {
 			};
 
 			const result = formatRollResult(mockResult);
-			expect(result).toBe("1d4 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
+			expect(result).toBe("1d4 [1] - 2 = **-1** failed"); // No critical failure with only 1 die
 		});
 
 		it("should format positive global modifier", () => {
@@ -462,6 +462,36 @@ describe("formatRollResult", () => {
 
 			const result = formatRollResult(mockResult);
 			expect(result).toBe("1d8 [1] + 2 = **3** failed\n1d6 [3] + 2 = **5** success");
+		});
+
+		it("should NOT show critical failure without target number", () => {
+			const mockResult: FullRollResult = {
+				expressionResults: [
+					{
+						diceGroupResults: [
+							{
+								result: {
+									originalGroup: { quantity: 2, sides: 6 },
+									rolls: [
+										[1, false, false],
+										[1, false, false],
+									],
+									total: 2,
+								},
+								operator: "+",
+							},
+						],
+						total: 2,
+						state: ExpressionState.NotApplicable,
+					},
+				],
+				grandTotal: 2,
+				// No targetNumber defined
+			};
+
+			const result = formatRollResult(mockResult);
+			expect(result).toBe("2d6 [1, 1] = **2**"); // No critical failure notice
+			expect(result).not.toContain("❗**CRITICAL FAILURE**");
 		});
 
 		it("should format with raw expression and emoji", () => {
