@@ -3,7 +3,7 @@
         "title": "🎲 Game Assist Bot Commands",
         "description": "A Discord bot for rolling dice and making trait checks. Use the commands below:",
         "commandListIntro": "**Available Commands:**",
-        "commandFormat": "• **/{name}** - {description}",
+        "commandFormat": "• **/{name}** `{formula}` - {description}",
         "detailedHelpPrompt": "Use `/help {command}` for detailed help on a specific command."
     },
     "commands": {

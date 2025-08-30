@@ -1,7 +1,28 @@
 import { describe, it, expect } from "vitest";
 import { formatErrorMessage, formatWarningMessage, formatDetailedCommandHelp, formatOverviewHelp, getCommandConfig, getAvailableCommands, } from "../utils/messages.js";
+import { HELP_ENABLED_COMMANDS } from "../utils/constants.js";
 import messages from "../utils/messages.json" with { type: "json" };
 describe("Command Messages", () => {
+    describe("getAvailableCommands", () => {
+        it("should return the expected help-enabled commands", () => {
+            const availableCommands = getAvailableCommands();
+            // Should return the exact commands from HELP_ENABLED_COMMANDS
+            expect(availableCommands).toEqual([...HELP_ENABLED_COMMANDS]);
+            expect(availableCommands).toHaveLength(HELP_ENABLED_COMMANDS.length);
+        });
+        it("should return array of strings", () => {
+            const availableCommands = getAvailableCommands();
+            expect(Array.isArray(availableCommands)).toBe(true);
+            availableCommands.forEach((command) => {
+                expect(typeof command).toBe("string");
+                expect(command.length).toBeGreaterThan(0);
+            });
+        });
+        it("should not include help command in the list", () => {
+            const availableCommands = getAvailableCommands();
+            expect(availableCommands).not.toContain("help");
+        });
+    });
     describe("getCommandConfig", () => {
         it("should return config for valid command", () => {
             const config = getCommandConfig("roll");
@@ -31,11 +52,12 @@ describe("Command Messages", () => {
             const availableCommands = getAvailableCommands();
             // Should contain help structure from configuration
             expect(helpText).toContain(messages.help.title);
-            expect(helpText).toContain(messages.help.commandListIntro);
             expect(helpText).toContain(messages.help.detailedHelpPrompt);
-            // Should include all available commands
+            expect(helpText).toContain("**Quick Overview of Options:**");
+            // Should include all available commands with new format
             for (const commandName of availableCommands) {
                 expect(helpText).toContain(`**/${commandName}**`);
+                expect(helpText).toContain("&mdash;");
             }
         });
     });

@@ -34,4 +34,5 @@ export declare const GAME_RULES: {
     readonly RAISE_THRESHOLD: 4;
     readonly VALID_DICE_SIDES: readonly [4, 6, 8, 10, 12, 20, 100];
 };
+export declare const HELP_ENABLED_COMMANDS: readonly ["roll", "trait"];
 //# sourceMappingURL=constants.d.ts.map

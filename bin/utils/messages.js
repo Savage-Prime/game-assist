@@ -1,4 +1,5 @@
 import messages from "./messages.json" with { type: "json" };
+import { HELP_ENABLED_COMMANDS } from "./constants.js";
 /**
  * Get command configuration for a specific command
  */
@@ -10,7 +11,7 @@ export function getCommandConfig(commandName) {
  * Get all available command names (excluding 'help' from the main list)
  */
 export function getAvailableCommands() {
-    return Object.keys(messages.commands).filter((cmd) => cmd !== "help");
+    return [...HELP_ENABLED_COMMANDS];
 }
 /**
  * Format overview help text showing all commands
@@ -18,14 +19,28 @@ export function getAvailableCommands() {
 export function formatOverviewHelp() {
     const helpConfig = messages.help;
     const commands = getAvailableCommands();
-    let helpText = `${helpConfig.title}\n${helpConfig.description}\n\n${helpConfig.commandListIntro}\n`;
+    let helpText = `${helpConfig.title}\n${helpConfig.description}\n\n`;
+    // List commands in the new format
     for (const commandName of commands) {
         const config = getCommandConfig(commandName);
         if (config) {
-            helpText +=
-                helpConfig.commandFormat.replace("{name}", commandName).replace("{description}", config.description) +
-                    "\n";
+            helpText += `**/${commandName}** &mdash; ${config.description}\n`;
+            helpText += `    \`${config.formula}\`\n\n`;
         }
+    }
+    // Add Quick Overview of Options section
+    helpText += "**Quick Overview of Options:**\n";
+    // Collect all unique quick reference items from all commands
+    const allQuickRef = {};
+    for (const commandName of commands) {
+        const config = getCommandConfig(commandName);
+        if (config?.quickReference) {
+            Object.assign(allQuickRef, config.quickReference);
+        }
+    }
+    // Display the quick reference items
+    for (const [key, value] of Object.entries(allQuickRef)) {
+        helpText += `• **${key}** - ${value}\n`;
     }
     helpText += `\n${helpConfig.detailedHelpPrompt}`;
     return helpText;
