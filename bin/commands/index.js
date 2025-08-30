@@ -3,8 +3,9 @@
 import ping from "./ping.js";
 import roll from "./roll.js";
 import trait from "./trait.js";
+import help from "./help.js";
 // keep a list for deployment
-export const slashCommandList = [ping, roll, trait];
+export const slashCommandList = [ping, roll, trait, help];
 // build the name→command map safely
 export const slashCommands = Object.fromEntries(slashCommandList.map((c, i) => {
     if (!c?.data || typeof c.data?.toJSON !== "function") {

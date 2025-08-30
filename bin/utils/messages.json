@@ -1,75 +1,327 @@
 {
+    "help": {
+        "title": "🎲 Game Assist Bot Commands",
+        "description": "A Discord bot for rolling dice and making trait checks. Use the commands below:",
+        "commandListIntro": "**Available Commands:**",
+        "commandFormat": "• **/{name}** - {description}",
+        "detailedHelpPrompt": "Use `/help {command}` for detailed help on a specific command."
+    },
     "commands": {
+        "help": {
+            "description": "Show help for all commands or detailed help for a specific command",
+            "parameterDescription": "Optional: specific command name to get detailed help",
+            "formula": "/help [command]",
+            "helpTitle": "Help Command Usage:",
+            "components": [
+                {
+                    "name": "command",
+                    "optional": true,
+                    "description": "Name of the command to get detailed help for",
+                    "examples": [
+                        "roll",
+                        "trait"
+                    ]
+                }
+            ],
+            "examples": [
+                {
+                    "syntax": "/help",
+                    "description": "Show all available commands"
+                },
+                {
+                    "syntax": "/help roll",
+                    "description": "Show detailed help for the roll command"
+                },
+                {
+                    "syntax": "/help trait",
+                    "description": "Show detailed help for the trait command"
+                }
+            ]
+        },
         "roll": {
-            "description": "Roll dice using an expression (e.g., 2d6, 1d8!!;1d6!! +1 tn4, 1d20+5, 5d6kh3, 2d6 x3)",
-            "parameterDescription": "Dice expression (e.g., 1d12+2d6+3, 1d4!!;1d6!! -2 tn4, 2d6 x3)",
-            "helpTitle": "Help for /roll command:",
-            "helpExamples": [
+            "description": "Roll dice using flexible expressions with modifiers, exploding dice, and more",
+            "parameterDescription": "Dice expression using the notation below",
+            "formula": "[count]d[sides][!/!![>threshold]][±modifier][kh/kl[count]][tn[target]][(±global)][;next_expression][x[repeats]]",
+            "helpTitle": "Roll Command - Dice Expression Syntax:",
+            "components": [
+                {
+                    "name": "count",
+                    "optional": true,
+                    "description": "Number of dice to roll (default: 1)",
+                    "examples": [
+                        "1",
+                        "2",
+                        "4"
+                    ]
+                },
+                {
+                    "name": "d[sides]",
+                    "optional": false,
+                    "description": "Die type - number of sides",
+                    "examples": [
+                        "d4",
+                        "d6",
+                        "d8",
+                        "d10",
+                        "d12",
+                        "d20",
+                        "d100"
+                    ]
+                },
+                {
+                    "name": "!/!![>threshold]",
+                    "optional": true,
+                    "description": "Exploding dice - ! explodes once, !! explodes infinitely. Use >N to set custom explode threshold",
+                    "examples": [
+                        "d6!",
+                        "2d8!!",
+                        "1d10!>8",
+                        "2d6!!>5"
+                    ]
+                },
+                {
+                    "name": "±modifier",
+                    "optional": true,
+                    "description": "Local modifier - adds/subtracts from this dice group's result",
+                    "examples": [
+                        "+3",
+                        "-2",
+                        "+1"
+                    ]
+                },
+                {
+                    "name": "kh/kl[count]",
+                    "optional": true,
+                    "description": "Keep highest (kh) or lowest (kl) dice",
+                    "examples": [
+                        "kh3",
+                        "kl1",
+                        "kh2"
+                    ]
+                },
+                {
+                    "name": "tn[target]",
+                    "optional": true,
+                    "description": "Target number - count successes at or above target",
+                    "examples": [
+                        "tn4",
+                        "tn7",
+                        "tn8"
+                    ]
+                },
+                {
+                    "name": "(±global)",
+                    "optional": true,
+                    "description": "Global modifier - adds/subtracts from final total (affects all dice)",
+                    "examples": [
+                        "(+2)",
+                        "(-1)",
+                        "(+5)"
+                    ]
+                },
+                {
+                    "name": ";next_expression",
+                    "optional": true,
+                    "description": "Chain multiple dice expressions",
+                    "examples": [
+                        "1d8;1d6",
+                        "2d6;1d20+5"
+                    ]
+                },
+                {
+                    "name": "x[repeats]",
+                    "optional": true,
+                    "description": "Repeat the entire expression multiple times",
+                    "examples": [
+                        "x3",
+                        "x5",
+                        "x10"
+                    ]
+                }
+            ],
+            "examples": [
                 {
                     "syntax": "1d20",
-                    "description": "Roll a 20-sided die"
+                    "description": "Roll a single 20-sided die"
                 },
                 {
                     "syntax": "2d6+3",
                     "description": "Roll two 6-sided dice and add 3"
                 },
                 {
+                    "syntax": "1d8!",
+                    "description": "Roll a d8 with exploding dice (explodes once on max)"
+                },
+                {
                     "syntax": "1d8!!",
-                    "description": "Roll a d8 with exploding dice"
+                    "description": "Roll a d8 with infinite exploding dice (keeps exploding)"
+                },
+                {
+                    "syntax": "1d6!>4",
+                    "description": "Roll a d6 that explodes on 4+ (custom threshold)"
+                },
+                {
+                    "syntax": "2d8!!>6",
+                    "description": "Roll 2d8 that explode infinitely on 6+ (custom threshold)"
+                },
+                {
+                    "syntax": "2d6+3 (+2)",
+                    "description": "Roll 2d6+3 with +2 global modifier (affects final total)"
                 },
                 {
                     "syntax": "4d6kh3",
-                    "description": "Roll 4d6 and keep the highest 3"
+                    "description": "Roll 4d6 and keep the highest 3 results"
                 },
                 {
                     "syntax": "3d10 tn7",
-                    "description": "Roll 3d10 and count successes (7+)"
+                    "description": "Roll 3d10 and count successes (results 7 or higher)"
                 },
                 {
                     "syntax": "1d6;1d8",
-                    "description": "Roll multiple expressions"
+                    "description": "Roll a d6 and a d8 as separate expressions"
                 },
                 {
                     "syntax": "2d6 x3",
-                    "description": "Repeat expression 3 times"
+                    "description": "Roll 2d6 three times"
+                },
+                {
+                    "syntax": "1d20+5 tn15",
+                    "description": "Roll d20+5 and check if it meets or beats 15"
                 }
-            ]
+            ],
+            "quickReference": {
+                "basic": "XdY = Roll X dice with Y sides",
+                "exploding": "! = Explode once, !! = Explode infinitely, !>N = Custom threshold",
+                "modifiers": "+N/-N = Local modifier (per dice group)",
+                "global": "(+N)/(-N) = Global modifier (affects final total)",
+                "keep": "khN/klN = Keep highest/lowest N dice",
+                "target": "tnN = Count successes at target N+",
+                "chain": "; = Separate multiple expressions",
+                "repeat": "xN = Repeat expression N times"
+            }
         },
         "trait": {
-            "description": "Roll a Savage Worlds trait check with trait die + wild die (e.g., d8+1, 1d8 wd6 (+1) tn4)",
-            "parameterDescription": "Trait expression (e.g., d8+1, 1d10 wd6 tn8, d4 wd6 (+2) tn4)",
-            "helpTitle": "Help for /trait command:",
-            "helpExamples": [
+            "description": "Roll Savage Worlds trait checks with trait die + wild die",
+            "parameterDescription": "Trait expression for Savage Worlds system",
+            "formula": "[count]d[trait_die] [wd[wild_die]] [th[threshold]] [([±modifier])] [tn[target]]",
+            "helpTitle": "Trait Command - Savage Worlds Trait Check Syntax:",
+            "components": [
+                {
+                    "name": "count",
+                    "optional": true,
+                    "description": "Number of trait dice (usually 1, default: 1)",
+                    "examples": [
+                        "1",
+                        "2"
+                    ]
+                },
+                {
+                    "name": "d[trait_die]",
+                    "optional": false,
+                    "description": "Trait die type (d4, d6, d8, d10, d12)",
+                    "examples": [
+                        "d4",
+                        "d6",
+                        "d8",
+                        "d10",
+                        "d12"
+                    ]
+                },
+                {
+                    "name": "wd[wild_die]",
+                    "optional": true,
+                    "description": "Wild die override (default: d6)",
+                    "examples": [
+                        "wd6",
+                        "wd8",
+                        "wd10"
+                    ]
+                },
+                {
+                    "name": "th[threshold]",
+                    "optional": true,
+                    "description": "Threshold for wild die explosion (default: 1)",
+                    "examples": [
+                        "th1",
+                        "th2"
+                    ]
+                },
+                {
+                    "name": "([±modifier])",
+                    "optional": true,
+                    "description": "Modifier applied to both dice (in parentheses)",
+                    "examples": [
+                        "(+1)",
+                        "(+2)",
+                        "(-1)"
+                    ]
+                },
+                {
+                    "name": "tn[target]",
+                    "optional": true,
+                    "description": "Target number to beat for success",
+                    "examples": [
+                        "tn4",
+                        "tn6",
+                        "tn8"
+                    ]
+                }
+            ],
+            "examples": [
                 {
                     "syntax": "d8",
-                    "description": "Roll d8 trait die with d6 wild die"
+                    "description": "Roll d8 trait die with standard d6 wild die"
                 },
                 {
                     "syntax": "d8+1",
-                    "description": "Roll d8 trait die + d6 wild die with +1 modifier"
+                    "description": "Roll d8 trait + d6 wild with +1 modifier to both"
                 },
                 {
                     "syntax": "1d10 wd6 tn8",
-                    "description": "Roll d10 trait + d6 wild against target 8"
+                    "description": "Roll d10 trait + d6 wild against target number 8"
                 },
                 {
                     "syntax": "d4 wd6 (+2) tn4",
-                    "description": "Roll d4 trait + d6 wild with +2 modifier against target 4"
+                    "description": "Roll d4 trait + d6 wild with +2 modifier against TN 4"
                 },
                 {
                     "syntax": "d12 wd8 th1 (+1) tn6",
-                    "description": "Full notation with wild die override"
+                    "description": "Full notation: d12 trait + d8 wild, threshold 1, +1 modifier, TN 6"
+                },
+                {
+                    "syntax": "d6 wd6 (-2) tn4",
+                    "description": "Roll with penalty: d6 trait + d6 wild with -2 modifier"
                 }
-            ]
+            ],
+            "quickReference": {
+                "basic": "dX = Trait die + d6 wild die",
+                "wildDie": "wdX = Override wild die type",
+                "threshold": "thX = Wild die explosion threshold",
+                "modifier": "(+N) = Modifier to both dice",
+                "target": "tnN = Target number to beat",
+                "aces": "Both dice explode on max roll (Aces rule)"
+            }
         }
     },
     "errors": {
-        "invalidExpression": "Invalid {type} expression: \"{input}\"",
-        "errorPrefix": "❌ Errors: ",
-        "warningPrefix": "⚠️ Warnings: "
+        "invalidExpression": "❌ **Invalid {type} expression:** `{input}`",
+        "errorPrefix": "❌ **Errors:**\n",
+        "warningPrefix": "⚠️ **Warnings:**\n",
+        "noCommandFound": "❌ **Unknown command:** `{command}`\n\nUse `/help` to see all available commands.",
+        "helpFooter": "\n💡 **Tip:** Use `/help {command}` for detailed syntax help."
     },
     "format": {
-        "helpIntro": "Use {type} expressions like:",
-        "bulletPoint": "• `{syntax}` - {description}"
+        "helpIntro": "**{type} expressions:**",
+        "bulletPoint": "• `{syntax}` - {description}",
+        "formulaHeader": "**📋 Syntax Formula:**",
+        "formulaFormat": "```\n{formula}\n```",
+        "componentsHeader": "**🔧 Components:**",
+        "componentFormat": "• **{name}** {optional} - {description}",
+        "componentOptional": "(optional)",
+        "componentRequired": "(required)",
+        "examplesHeader": "**📚 Examples:**",
+        "quickRefHeader": "**⚡ Quick Reference:**",
+        "quickRefFormat": "• **{key}** - {value}",
+        "commandDetailedHelp": "\n\n🔗 **Related:** Use `/help` to see all commands."
     }
 }
