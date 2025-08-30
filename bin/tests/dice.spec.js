@@ -271,8 +271,8 @@ describe("critical failure detection", () => {
             expect(isCriticalFailure(expressionResult)).toBe(false); // Has a 3 that wasn't dropped
         });
         it("should ignore pure number modifiers", () => {
-            mockRandomInt.mockReturnValueOnce(1);
-            const diceGroup = { quantity: 1, sides: 6 };
+            mockRandomInt.mockReturnValueOnce(1).mockReturnValueOnce(1);
+            const diceGroup = { quantity: 2, sides: 6 }; // Need 2 dice for critical failure
             const modifierGroup = { quantity: 0, sides: 5 }; // pure number
             const diceResult = rollDiceGroup(diceGroup);
             const modifierResult = rollDiceGroup(modifierGroup);
@@ -281,9 +281,9 @@ describe("critical failure detection", () => {
                     { result: diceResult, operator: "+" },
                     { result: modifierResult, operator: "+" },
                 ],
-                total: 6,
+                total: 7, // 1 + 1 + 5
             };
-            expect(isCriticalFailure(expressionResult)).toBe(true); // Only the die matters, not the modifier
+            expect(isCriticalFailure(expressionResult)).toBe(true); // Only the dice matter, not the modifier
         });
         it("should not detect critical failure with no active dice", () => {
             const modifierGroup = { quantity: 0, sides: 5 }; // only modifier
@@ -293,6 +293,13 @@ describe("critical failure detection", () => {
                 total: 5,
             };
             expect(isCriticalFailure(expressionResult)).toBe(false);
+        });
+        it("should not detect critical failure with only 1 die rolling 1", () => {
+            mockRandomInt.mockReturnValueOnce(1);
+            const group = { quantity: 1, sides: 6 };
+            const groupResult = rollDiceGroup(group);
+            const expressionResult = { diceGroupResults: [{ result: groupResult, operator: "+" }], total: 1 };
+            expect(isCriticalFailure(expressionResult)).toBe(false); // Need at least 2 dice for critical failure
         });
     });
     describe("isFullRollCriticalFailure", () => {
@@ -331,6 +338,17 @@ describe("critical failure detection", () => {
                 grandTotal: 4,
             };
             expect(isFullRollCriticalFailure(fullResult)).toBe(false);
+        });
+        it("should not detect critical failure with only 1 die across all expressions", () => {
+            // Only one die rolling 1 across the entire roll
+            mockRandomInt.mockReturnValueOnce(1);
+            const group1 = { quantity: 1, sides: 6 };
+            const result1 = rollDiceGroup(group1);
+            const fullResult = {
+                expressionResults: [{ diceGroupResults: [{ result: result1, operator: "+" }], total: 1 }],
+                grandTotal: 1,
+            };
+            expect(isFullRollCriticalFailure(fullResult)).toBe(false); // Need at least 2 dice total
         });
     });
 });

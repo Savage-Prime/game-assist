@@ -64,7 +64,7 @@ export async function rollExpression(expression) {
 }
 export function isCriticalFailure(expressionResult) {
     // Check if all non-dropped dice in this expression rolled 1s
-    let hasAnyActiveDice = false;
+    let totalActiveDiceCount = 0;
     for (const { result: groupResult } of expressionResult.diceGroupResults) {
         // Skip pure number modifiers (quantity: 0)
         if (groupResult.originalGroup.quantity === 0) {
@@ -76,18 +76,16 @@ export function isCriticalFailure(expressionResult) {
         if (nonCriticalDice.length > 0) {
             return false;
         }
-        // Check if this group has any active dice at all
+        // Count active dice in this group
         const activeDice = groupResult.rolls.filter(([, , dropped]) => !dropped);
-        if (activeDice.length > 0) {
-            hasAnyActiveDice = true;
-        }
+        totalActiveDiceCount += activeDice.length;
     }
-    // Critical failure only if we had active dice and none rolled > 1
-    return hasAnyActiveDice;
+    // Critical failure only if we had enough active dice and none rolled > 1
+    return totalActiveDiceCount >= GAME_RULES.MIN_CRITICAL_FAILURE_DICE;
 }
 export function isFullRollCriticalFailure(fullResult) {
     // Check if ALL dice across ALL expressions rolled 1s (excluding dropped dice and pure number modifiers)
-    let hasAnyActiveDice = false;
+    let totalActiveDiceCount = 0;
     for (const expr of fullResult.expressionResults) {
         for (const { result: groupResult } of expr.diceGroupResults) {
             // Skip pure number modifiers (quantity: 0)
@@ -100,15 +98,13 @@ export function isFullRollCriticalFailure(fullResult) {
             if (nonCriticalDice.length > 0) {
                 return false;
             }
-            // Check if this group has any active dice at all
+            // Count active dice in this group
             const activeDice = groupResult.rolls.filter(([, , dropped]) => !dropped);
-            if (activeDice.length > 0) {
-                hasAnyActiveDice = true;
-            }
+            totalActiveDiceCount += activeDice.length;
         }
     }
-    // Critical failure only if we had active dice and ALL of them rolled 1s
-    return hasAnyActiveDice;
+    // Critical failure only if we had enough active dice and ALL of them rolled 1s
+    return totalActiveDiceCount >= GAME_RULES.MIN_CRITICAL_FAILURE_DICE;
 }
 export async function rollParsedExpression(parsed, rawExpression) {
     const result = { expressionResults: [], grandTotal: 0 };

@@ -100,8 +100,8 @@ export function formatRollResult(result) {
     }
     // Add results without quote formatting (bright)
     response += expressionLines.join("\n");
-    // Add critical failure notice if any expression had one
-    if (hasCriticalFailure) {
+    // Add critical failure notice if any expression had one AND there's a target number
+    if (hasCriticalFailure && result.targetNumber !== undefined) {
         response += "\n❗**CRITICAL FAILURE**";
     }
     return response;
