@@ -21,7 +21,7 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 	const cmd = slashCommands[interaction.commandName];
 	if (!cmd) {
 		// Can happen if your deployed commands are out of sync with the running image
-		await interaction.reply({ content: "Unknown command.", ephemeral: true }).catch(() => {});
+		await interaction.reply({ content: "Unknown command.", flags: 1 << 6 }).catch(() => {}); // MessageFlags.Ephemeral
 		log.warn("[slash] unknown", { commandName: interaction.commandName });
 		return;
 	}
@@ -31,9 +31,9 @@ client.on(Events.InteractionCreate, async (interaction: Interaction) => {
 	} catch (err) {
 		log.error("[slash] failed", { commandName: interaction.commandName, err: String(err) });
 		if (interaction.deferred || interaction.replied) {
-			await interaction.followUp({ content: "Error executing command.", ephemeral: true }).catch(() => {});
+			await interaction.followUp({ content: "Error executing command.", flags: 1 << 6 }).catch(() => {}); // MessageFlags.Ephemeral
 		} else {
-			await interaction.reply({ content: "Error executing command.", ephemeral: true }).catch(() => {});
+			await interaction.reply({ content: "Error executing command.", flags: 1 << 6 }).catch(() => {}); // MessageFlags.Ephemeral
 		}
 	}
 });

@@ -50,8 +50,7 @@
                     "description": "Number of dice to roll (default: 1)",
                     "examples": [
                         "1",
-                        "2",
-                        "4"
+                        "5"
                     ]
                 },
                 {
@@ -60,12 +59,8 @@
                     "description": "Die type - number of sides",
                     "examples": [
                         "d4",
-                        "d6",
-                        "d8",
-                        "d10",
                         "d12",
-                        "d20",
-                        "d100"
+                        "d30"
                     ]
                 },
                 {
@@ -85,8 +80,7 @@
                     "description": "Local modifier - adds/subtracts from this dice group's result",
                     "examples": [
                         "+3",
-                        "-2",
-                        "+1"
+                        "-2"
                     ]
                 },
                 {
@@ -95,8 +89,7 @@
                     "description": "Keep highest (kh) or lowest (kl) dice",
                     "examples": [
                         "kh3",
-                        "kl1",
-                        "kh2"
+                        "kl1"
                     ]
                 },
                 {
@@ -105,8 +98,7 @@
                     "description": "Target number - count successes at or above target",
                     "examples": [
                         "tn4",
-                        "tn7",
-                        "tn8"
+                        "tn7"
                     ]
                 },
                 {
@@ -115,8 +107,7 @@
                     "description": "Global modifier - adds/subtracts from final total (affects all dice)",
                     "examples": [
                         "(+2)",
-                        "(-1)",
-                        "(+5)"
+                        "(-1)"
                     ]
                 },
                 {
@@ -125,7 +116,7 @@
                     "description": "Chain multiple dice expressions",
                     "examples": [
                         "1d8;1d6",
-                        "2d6;1d20+5"
+                        "2d6;1d4+2"
                     ]
                 },
                 {
@@ -133,60 +124,35 @@
                     "optional": true,
                     "description": "Repeat the entire expression multiple times",
                     "examples": [
-                        "x3",
-                        "x5",
-                        "x10"
+                        "x2",
+                        "x5"
                     ]
                 }
             ],
             "examples": [
                 {
-                    "syntax": "1d20",
-                    "description": "Roll a single 20-sided die"
-                },
-                {
-                    "syntax": "2d6+3",
-                    "description": "Roll two 6-sided dice and add 3"
-                },
-                {
-                    "syntax": "1d8!",
-                    "description": "Roll a d8 with exploding dice (explodes once on max)"
-                },
-                {
-                    "syntax": "1d8!!",
-                    "description": "Roll a d8 with infinite exploding dice (keeps exploding)"
-                },
-                {
-                    "syntax": "1d6!>4",
-                    "description": "Roll a d6 that explodes on 4+ (custom threshold)"
-                },
-                {
                     "syntax": "2d8!!>6",
-                    "description": "Roll 2d8 that explode infinitely on 6+ (custom threshold)"
+                    "description": "Roll 2d8 that each explode infinitely on 6+ for a combined sum"
                 },
                 {
-                    "syntax": "2d6+3 (+2)",
-                    "description": "Roll 2d6+3 with +2 global modifier (affects final total)"
+                    "syntax": "2d20kh1 (+1) tn15",
+                    "description": "Roll 2d20, keep the highest, add 1, and check if it meets or beats 15"
                 },
                 {
-                    "syntax": "4d6kh3",
-                    "description": "Roll 4d6 and keep the highest 3 results"
+                    "syntax": "1d8!!+1d4!!+5",
+                    "description": "Roll 1d8 and 1d4 with infinite exploding dice, and add 5"
                 },
                 {
-                    "syntax": "3d10 tn7",
-                    "description": "Roll 3d10 and count successes (results 7 or higher)"
+                    "syntax": "4d6kh3 x6",
+                    "description": "Roll 4d6 and keep the highest 3 results, repeat for 6 results (D&D ability scores)"
                 },
                 {
-                    "syntax": "1d6;1d8",
-                    "description": "Roll a d6 and a d8 as separate expressions"
+                    "syntax": "10d6!! tn5",
+                    "description": "Roll 10d6 that each explode infinitely and count successes (results 5 or higher)"
                 },
                 {
-                    "syntax": "2d6 x3",
-                    "description": "Roll 2d6 three times"
-                },
-                {
-                    "syntax": "1d20+5 tn15",
-                    "description": "Roll d20+5 and check if it meets or beats 15"
+                    "syntax": "1d4;1d6;1d8 (+2)",
+                    "description": "Roll multiple dice as separate expressions and add 2 to each result"
                 }
             ],
             "quickReference": {
@@ -218,29 +184,25 @@
                 {
                     "name": "d[trait_die]",
                     "optional": false,
-                    "description": "Trait die type (d4, d6, d8, d10, d12)",
+                    "description": "Trait die type (requires: d4, d6, d8, d10, d12)",
                     "examples": [
                         "d4",
-                        "d6",
-                        "d8",
-                        "d10",
-                        "d12"
+                        "d8"
                     ]
                 },
                 {
                     "name": "wd[wild_die]",
                     "optional": true,
-                    "description": "Wild die override (default: d6)",
+                    "description": "Wild die override (default: d6; requires: d4, d6, d8, d10, d12)",
                     "examples": [
-                        "wd6",
                         "wd8",
                         "wd10"
                     ]
                 },
                 {
-                    "name": "th[threshold]",
+                    "name": "th[count]",
                     "optional": true,
-                    "description": "Threshold for wild die explosion (default: 1)",
+                    "description": "Take highest - keep the highest N dice from all dice rolled (trait + wild)",
                     "examples": [
                         "th1",
                         "th2"
@@ -252,51 +214,37 @@
                     "description": "Modifier applied to both dice (in parentheses)",
                     "examples": [
                         "(+1)",
-                        "(+2)",
-                        "(-1)"
+                        "(-2)"
                     ]
                 },
                 {
                     "name": "tn[target]",
                     "optional": true,
-                    "description": "Target number to beat for success",
+                    "description": "Target number to beat for success (default: 4)",
                     "examples": [
-                        "tn4",
-                        "tn6",
-                        "tn8"
+                        "tn3",
+                        "tn6"
                     ]
                 }
             ],
             "examples": [
                 {
                     "syntax": "d8",
-                    "description": "Roll d8 trait die with standard d6 wild die"
+                    "description": "Roll d8 trait die with d6 wild die against target number 4"
                 },
                 {
-                    "syntax": "d8+1",
-                    "description": "Roll d8 trait + d6 wild with +1 modifier to both"
-                },
-                {
-                    "syntax": "1d10 wd6 tn8",
-                    "description": "Roll d10 trait + d6 wild against target number 8"
-                },
-                {
-                    "syntax": "d4 wd6 (+2) tn4",
-                    "description": "Roll d4 trait + d6 wild with +2 modifier against TN 4"
+                    "syntax": "d4-2",
+                    "description": "Roll d4 trait + d6 wild with -2 modifier to both against target number 4"
                 },
                 {
                     "syntax": "d12 wd8 th1 (+1) tn6",
-                    "description": "Full notation: d12 trait + d8 wild, threshold 1, +1 modifier, TN 6"
-                },
-                {
-                    "syntax": "d6 wd6 (-2) tn4",
-                    "description": "Roll with penalty: d6 trait + d6 wild with -2 modifier"
+                    "description": "Full notation: d12 trait + d8 wild, take highest 1, +1 modifier, target number 6"
                 }
             ],
             "quickReference": {
                 "basic": "dX = Trait die + d6 wild die",
                 "wildDie": "wdX = Override wild die type",
-                "threshold": "thX = Wild die explosion threshold",
+                "takeHighest": "thX = Take highest X dice from all rolled",
                 "modifier": "(+N) = Modifier to both dice",
                 "target": "tnN = Target number to beat",
                 "aces": "Both dice explode on max roll (Aces rule)"

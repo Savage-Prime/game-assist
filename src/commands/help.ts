@@ -27,7 +27,7 @@ export default {
 
 		await interaction.reply({
 			content: helpText,
-			ephemeral: false, // Make help visible to everyone in the channel
+			flags: 1 << 6, // MessageFlags.Ephemeral - only visible to the user who ran the command
 		});
 	},
 };
