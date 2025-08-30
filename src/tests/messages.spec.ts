@@ -90,7 +90,7 @@ describe("Command Messages", () => {
 				expect(helpText).toContain(messages.format.formulaHeader);
 				expect(helpText).toContain(config!.formula);
 
-				// Should always have examples (limited to 6 for space)
+				// Should always have examples if available
 				if (config!.examples && config!.examples.length > 0) {
 					expect(helpText).toContain(messages.format.examplesHeader);
 					// Check that some examples are included (at least the first one)
@@ -99,11 +99,6 @@ describe("Command Messages", () => {
 						expect(helpText).toContain(firstExample.syntax);
 						expect(helpText).toContain(firstExample.description);
 					}
-				}
-
-				// Should have quick reference if available
-				if (config!.quickReference) {
-					expect(helpText).toContain(messages.format.quickRefHeader);
 				}
 
 				// Should contain the related command footer

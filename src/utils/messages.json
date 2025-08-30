@@ -261,13 +261,13 @@
     "format": {
         "helpIntro": "**{type} expressions:**",
         "bulletPoint": "• `{syntax}` - {description}",
-        "formulaHeader": "**📋 Syntax Formula:**",
+        "formulaHeader": "### Syntax Formula",
         "formulaFormat": "```\n{formula}\n```",
-        "componentsHeader": "**🔧 Components:**",
+        "componentsHeader": "### Components",
         "componentFormat": "• **{name}** {optional} - {description}",
         "componentOptional": "(optional)",
         "componentRequired": "(required)",
-        "examplesHeader": "**📚 Examples:**",
+        "examplesHeader": "### Examples",
         "quickRefHeader": "**⚡ Quick Reference:**",
         "quickRefFormat": "• **{key}** - {value}",
         "commandDetailedHelp": "\n\n🔗 **Related:** Use `/help` to see all commands."
