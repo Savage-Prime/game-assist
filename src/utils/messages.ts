@@ -177,7 +177,6 @@ export function formatErrorMessage(commandName: string, input: string, validatio
 
 	// Add detailed help for the specific command
 	errorMsg += "\n" + formatDetailedCommandHelp(commandName);
-	errorMsg += errors.helpFooter.replace("{command}", commandName);
 
 	return errorMsg;
 }

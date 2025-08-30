@@ -145,8 +145,8 @@ describe("Command Messages", () => {
 			const config = getCommandConfig("roll");
 			expect(errorMsg).toContain(config!.helpTitle);
 
-			// Should include the tip footer
-			expect(errorMsg).toContain("💡 **Tip:**");
+			// Should include the related commands footer from detailed help (not redundant tip)
+			expect(errorMsg).toContain("**Related:**");
 		});
 
 		it("should work with different command types", () => {
