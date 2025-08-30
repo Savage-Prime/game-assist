@@ -55,3 +55,6 @@ export const GAME_RULES = {
 	RAISE_THRESHOLD: 4, // Amount above target number required for a "raise"
 	VALID_DICE_SIDES: [4, 6, 8, 10, 12, 20, 100] as const, // Valid dice sides for trait dice
 } as const;
+
+// Commands that should appear in the help system
+export const HELP_ENABLED_COMMANDS = ["roll", "trait"] as const;
