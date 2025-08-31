@@ -3,6 +3,7 @@ import { GetDiscordEnv } from "./utils/env.js";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
 import { slashCommands } from "./commands/index.js";
+import { createPresence } from "./utils/hooks.js";
 
 const { token: discordToken, appId: appId } = GetDiscordEnv();
 
@@ -10,8 +11,12 @@ const { token: discordToken, appId: appId } = GetDiscordEnv();
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
 // Register event when bot comes online
-client.once(Events.ClientReady, (c) => {
+client.once(Events.ClientReady, async (c) => {
 	log.info("Gateway connected", { user: c.user.tag, appId: appId });
+
+	// Set the bot's presence
+	const presence = createPresence(c);
+	await presence.playing("games with dice");
 });
 
 // Handle interactions (slash commands)
