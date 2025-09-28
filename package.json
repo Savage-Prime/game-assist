@@ -8,6 +8,8 @@
   },
   "scripts": {
     "start": "node bin/bot.js",
+    "start-dev": "tsx src/bot.ts",
+    "start-guild": "tsx src/bot.ts",
     "build": "tsc",
     "test": "vitest",
     "test-run": "vitest run",

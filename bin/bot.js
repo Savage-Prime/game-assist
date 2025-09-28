@@ -1,5 +1,5 @@
 import { log } from "./utils/diags.js";
-import { GetDiscordEnv } from "./utils/env.js";
+import { GetDiscordEnv, IsProduction } from "./utils/env.js";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import { slashCommands } from "./commands/index.js";
 import { createPresence } from "./utils/hooks.js";
@@ -11,7 +11,8 @@ client.once(Events.ClientReady, async (c) => {
     log.info("Gateway connected", { user: c.user.tag, appId: appId });
     // Set the bot's presence
     const presence = createPresence(c);
-    await presence.playing("games with dice");
+    const activityMessage = IsProduction() ? "games with dice" : "games in test mode";
+    await presence.playing(activityMessage);
 });
 // Handle interactions (slash commands)
 client.on(Events.InteractionCreate, async (interaction) => {
