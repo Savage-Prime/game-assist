@@ -1,5 +1,5 @@
 import { log } from "./utils/diags.js";
-import { GetDiscordEnv } from "./utils/env.js";
+import { GetDiscordEnv, IsProduction } from "./utils/env.js";
 import { Client, Events, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
 import { slashCommands } from "./commands/index.js";
@@ -16,7 +16,8 @@ client.once(Events.ClientReady, async (c) => {
 
 	// Set the bot's presence
 	const presence = createPresence(c);
-	await presence.playing("games with dice");
+	const activityMessage = IsProduction() ? "games with dice" : "games in test mode";
+	await presence.playing(activityMessage);
 });
 
 // Handle interactions (slash commands)
