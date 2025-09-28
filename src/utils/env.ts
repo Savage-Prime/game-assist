@@ -20,10 +20,21 @@ export function GetRequiredEnv(name: string): string {
 	return v;
 }
 
+export function IsProduction(): boolean {
+	return process.env["NODE_ENV"] === "production";
+}
+
 export function GetDiscordEnv(): { token: string; appId: string; guildId?: string } {
-	const token = GetRequiredEnv("DISCORD_TOKEN");
-	const appId = GetRequiredEnv("APPLICATION_ID");
+	const isProduction = IsProduction();
+
+	// Use production variables in production, dev variables otherwise
+	const tokenVar = isProduction ? "DISCORD_TOKEN" : "DEV-DISCORD_TOKEN";
+	const appIdVar = isProduction ? "APPLICATION_ID" : "DEV-APPLICATION_ID";
+
+	const token = GetRequiredEnv(tokenVar);
+	const appId = GetRequiredEnv(appIdVar);
 	const guildId = GetEnv("GUILD_ID");
+
 	if (guildId === undefined) {
 		return { token, appId };
 	}
