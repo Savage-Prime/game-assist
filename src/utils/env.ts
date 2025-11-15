@@ -1,5 +1,15 @@
 // Load dotenv only in development
-if (process.env["NODE_ENV"] !== "production") {
+const rawNodeEnv = process.env["NODE_ENV"];
+const nodeEnv = typeof rawNodeEnv === "string" ? rawNodeEnv.trim().toLowerCase() : undefined;
+
+// If NODE_ENV === 'production' then we're in production; any other value (or undefined) => inDevelopment.
+export const inDevelopment = nodeEnv !== "production";
+
+// Safety check: warn if NODE_ENV is set to an unexpected value (neither 'production' nor 'development').
+if (nodeEnv && nodeEnv !== "production" && nodeEnv !== "development") {
+	console.warn(`[env] Unrecognized NODE_ENV="${rawNodeEnv}". Treating as development for safety.`);
+}
+if (inDevelopment) {
 	await import("dotenv/config");
 }
 
