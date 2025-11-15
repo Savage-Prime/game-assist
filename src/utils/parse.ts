@@ -2,6 +2,49 @@ import { log } from "./diags.js";
 import type { DiceGroup, RollSpecification, TraitSpecification } from "./types.js";
 import { LIMITS, DEFAULTS, GAME_RULES } from "./constants.js";
 
+/**
+ * Extract target number from expression.
+ * Supports both 't' and 'tn' syntax.
+ * @param expression - The cleaned expression to parse
+ * @param excludeTh - If true, exclude 'th' pattern (for trait rolls that have separate targetHighest)
+ * @returns The target number if found, undefined otherwise
+ */
+function extractTargetNumber(expression: string, excludeTh: boolean = false): number | undefined {
+	const pattern = excludeTh ? /t(?!h)[n]?(\d+)/ : /t[n]?(\d+)/;
+	const match = expression.match(pattern);
+	return match?.[1] ? parseInt(match[1]) : undefined;
+}
+
+/**
+ * Remove target number pattern from expression.
+ * @param expression - The expression to modify
+ * @param excludeTh - If true, exclude 'th' pattern
+ * @returns Expression with target number pattern removed
+ */
+function removeTargetNumber(expression: string, excludeTh: boolean = false): string {
+	const pattern = excludeTh ? /t(?!h)[n]?\d+/ : /t[n]?\d+/;
+	return expression.replace(pattern, "");
+}
+
+/**
+ * Extract target highest from expression.
+ * @param expression - The cleaned expression to parse
+ * @returns The target highest value if found, undefined otherwise
+ */
+function extractTargetHighest(expression: string): number | undefined {
+	const match = expression.match(/th(\d+)/);
+	return match?.[1] ? parseInt(match[1]) : undefined;
+}
+
+/**
+ * Remove target highest pattern from expression.
+ * @param expression - The expression to modify
+ * @returns Expression with target highest pattern removed
+ */
+function removeTargetHighest(expression: string): string {
+	return expression.replace(/th\d+/, "");
+}
+
 export function parseRollExpression(expression: string): RollSpecification {
 	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
 	let repetitionCount = 1;
@@ -33,10 +76,20 @@ export function parseRollExpression(expression: string): RollSpecification {
 		log.trace(message, details);
 	};
 
-	// Extract target number if present
-	const tnMatch = cleanExpression.match(/tn(\d+)/);
-	if (tnMatch && tnMatch[1]) {
-		result.targetNumber = parseInt(tnMatch[1]);
+	// Extract target number if present (supports both 't' and 'tn')
+	const targetNumber = extractTargetNumber(cleanExpression);
+	if (targetNumber !== undefined) {
+		result.targetNumber = targetNumber;
+	}
+
+	// Extract target highest if present (only valid with target number)
+	const targetHighest = extractTargetHighest(cleanExpression);
+	if (targetHighest !== undefined) {
+		if (targetNumber !== undefined) {
+			result.targetHighest = targetHighest;
+		} else {
+			addValidationMessage("Target highest (th) requires target number (t/tn) to be specified", { targetHighest });
+		}
 	}
 
 	// Extract global modifier if present: (1), (+1), (-1)
@@ -47,8 +100,9 @@ export function parseRollExpression(expression: string): RollSpecification {
 		result.globalModifier = modStr.startsWith("+") || modStr.startsWith("-") ? parseInt(modStr) : parseInt(modStr);
 	}
 
-	// Remove target number and global modifier from expression for further parsing
-	let workingExpression = cleanExpression.replace(/tn\d+/, "");
+	// Remove target number, target highest, and global modifier from expression for further parsing
+	let workingExpression = removeTargetNumber(cleanExpression);
+	workingExpression = removeTargetHighest(workingExpression);
 	workingExpression = workingExpression.replace(/\([+-]?\d+\)/, "");
 
 	// Log parsing attempt
@@ -339,21 +393,21 @@ export function parseTraitExpression(expression: string): TraitSpecification {
 		log.trace(message, details);
 	};
 
-	// Extract target number if present
-	const tnMatch = cleanExpression.match(/tn(\d+)/);
-	if (tnMatch && tnMatch[1]) {
-		result.targetNumber = parseInt(tnMatch[1]);
+	// Extract target number if present (supports both 't' and 'tn', but not 'th' which is targetHighest)
+	const targetNumber = extractTargetNumber(cleanExpression, true);
+	if (targetNumber !== undefined) {
+		result.targetNumber = targetNumber;
 	}
 
 	// Extract target highest if present
-	const thMatch = cleanExpression.match(/th(\d+)/);
-	if (thMatch && thMatch[1]) {
-		result.targetHighest = parseInt(thMatch[1]);
+	const targetHighest = extractTargetHighest(cleanExpression);
+	if (targetHighest !== undefined) {
+		result.targetHighest = targetHighest;
 	}
 
 	// Remove target number and target highest from expression for further parsing
-	let workingExpression = cleanExpression.replace(/tn\d+/, "");
-	workingExpression = workingExpression.replace(/th\d+/, "");
+	let workingExpression = removeTargetNumber(cleanExpression, true);
+	workingExpression = removeTargetHighest(workingExpression);
 
 	// Extract wild die if present (wd<n>)
 	const wildDieMatch = workingExpression.match(/wd(\d+)/);

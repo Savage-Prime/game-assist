@@ -114,8 +114,12 @@ The `/roll` command supports a powerful and flexible dice notation system:
 - `5d6dl1` - Roll 5d6, drop the lowest 1 die
 
 ### Target Numbers (Success Counting)
-- `5d6 tn4` - Roll 5d6, count successes (dice that rolled 4 or higher)
+- `5d6 tn4` or `5d6 t4` - Roll 5d6, count successes (dice that rolled 4 or higher)
 - `3d8!! tn6` - Roll 3d8 with infinite exploding, count successes against target 6
+- `2d6;1d8;1d4 tn4 th2` - Roll three expressions, count only the top 2 that meet or exceed TN 4
+- **Target Highest**: Use `th<N>` with target numbers to count only the top N successful expressions
+- **Raises**: Automatically calculated as target + 4 (e.g., target 6 requires 10+ for a raise)
+- **Note**: Both `t` and `tn` mean the same thing (target number); `th` only works when `t`/`tn` is specified
 
 ### Global Modifiers
 - `2d6 (+3)` - Roll 2d6 and add 3 to the total result
@@ -175,28 +179,30 @@ The `/trait` command implements Savage Worlds trait roll mechanics with a trait 
 ### Basic Trait Rolls
 - `d8` - Roll d8 trait die + d6 wild die (defaults to TN 4)
 - `d10+1` - Roll d10 trait die + d6 wild die with +1 modifier
-- `d6 tn6` - Roll d6 trait die + d6 wild die against target number 6
+- `d6 tn6` or `d6 t6` - Roll d6 trait die + d6 wild die against target number 6
 
 ### Wild Die Override
 - `d8 wd8` - Roll d8 trait die + d8 wild die (override default d6)
 - `d10 wd6` - Roll d10 trait die + d6 wild die (explicit wild die)
 
 ### Full Syntax
-- `1d8 wd6 th1 (+1) tn4` - Complete notation with all components
-- `d12 wd8 (+2) tn6` - Common usage with override and modifier
+- `1d8 wd6 (+1) tn4` - Complete notation: trait die, wild die, modifier, target number
+- `d12 wd8 (+2) tn6` - Common usage with wild die override and modifier
+- `d8 wd6 th1 tn4` - Explicit `th1` (unnecessary since it's always 1, but valid)
 
 ### Components
 - **Trait Die**: `d4`, `d6`, `d8`, `d10`, `d12` - Player's skill/attribute die
-- **Wild Die**: `wd6` (default), `wd8`, `wd10`, etc. - Usually d6, manually specified for larger dice
+- **Wild Die**: `wd6` (default), `wd8`, `wd10`, etc. - Usually d6, can be overridden
 - **Global Modifier**: `+1`, `(-2)` - Applied to both dice totals
-- **Target Number**: `tn4` (default), `tn6`, `tn8` - Difficulty of the task
-- **Target Highest**: `th1` - Number of results to compare (always 1 for traits)
+- **Target Number**: `tn4` or `t4` (default TN 4), `tn6`, `t8` - Difficulty threshold (`t` and `tn` are equivalent)
+- **Target Highest**: Always `th1` (hardcoded, compares trait die vs wild die to keep the higher result)
 
 ### Special Rules
 - **Exploding Dice**: Both dice explode infinitely on maximum value (ace)
-- **Keep Higher**: The higher total (trait or wild + modifiers) is used
+- **Keep Higher**: The higher result between trait die and wild die is used (inherent `th1` behavior)
 - **Critical Failure**: Occurs when both dice roll natural 1s, regardless of modifiers
 - **States**: Success (≥TN), Raise (≥TN+4), Failure (<TN)
+- **Raises**: Automatically calculated as target number + 4 (same as `/roll`)
 
 ### Trait Examples
 
