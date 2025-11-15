@@ -1,5 +1,45 @@
-import type { ChatInputCommandInteraction } from "discord.js";
+import type { ChatInputCommandInteraction, GuildMember } from "discord.js";
 import { formatErrorMessage, formatWarningMessage, getCommandConfig } from "./messages.js";
+import type { UserContext } from "./types.js";
+
+/**
+ * Escape special Markdown characters in text to prevent formatting issues
+ */
+function escapeMarkdown(text: string): string {
+	// Escape backslash first, then other special characters
+	return text
+		.replace(/\\/g, "\\\\")
+		.replace(/\*/g, "\\*")
+		.replace(/_/g, "\\_")
+		.replace(/~/g, "\\~")
+		.replace(/`/g, "\\`")
+		.replace(/\|/g, "\\|")
+		.replace(/\[/g, "\\[")
+		.replace(/\]/g, "\\]");
+}
+
+/**
+ * Extract user context from a Discord interaction
+ */
+export function extractUserContext(interaction: ChatInputCommandInteraction): UserContext {
+	const user = interaction.user;
+	const member =
+		interaction.member && typeof interaction.member === "object" ? (interaction.member as GuildMember) : null;
+	const guildId = interaction.guildId;
+
+	// Prioritize guild member display name, then global display name, then username
+	const displayName = member?.displayName ?? user.displayName ?? user.username;
+
+	return {
+		userId: user.id,
+		guildId,
+		user,
+		member,
+		username: user.username,
+		displayName,
+		markdownSafeName: escapeMarkdown(displayName),
+	};
+}
 
 /**
  * Base interface for parsed expressions that have validation messages
@@ -23,7 +63,7 @@ export interface CommandHandlerConfig<TParseData extends ParsedExpression, TExec
 	commandName: string;
 	parseFunction: (input: string) => TParseData;
 	executeFunction: (parseData: TParseData, originalInput: string) => TExecResult | Promise<TExecResult>;
-	formatFunction: (result: TExecResult) => string;
+	formatFunction: (result: TExecResult, userContext: UserContext) => string;
 	validateParseResult: (parseResult: TParseData) => boolean;
 }
 
@@ -58,8 +98,9 @@ export async function handleDiceCommand<TParseData extends ParsedExpression, TEx
 	// Step 4: Execute the operation
 	const executionResult = await config.executeFunction(parseResult, input);
 
-	// Step 5: Format the response
-	const formattedResponse = config.formatFunction(executionResult);
+	// Step 5: Extract user context and format the response
+	const userContext = extractUserContext(interaction);
+	const formattedResponse = config.formatFunction(executionResult, userContext);
 
 	// Step 6: Reply to the interaction
 	await interaction.reply(warningMessage + formattedResponse);

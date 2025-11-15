@@ -1,6 +1,42 @@
 import { describe, it, expect } from "vitest";
 import { formatTraitResult } from "../utils/responses.js";
-import { ExpressionState, type FullTraitResult, type TraitDieResult, type DiceGroupResult } from "../utils/index.js";
+import {
+	ExpressionState,
+	type FullTraitResult,
+	type TraitDieResult,
+	type DiceGroupResult,
+	type UserContext,
+} from "../utils/index.js";
+
+/**
+ * Create a mock UserContext for testing
+ */
+function createMockUserContext(displayName: string = "TestUser"): UserContext {
+	return {
+		userId: "123456789",
+		guildId: "987654321",
+		user: {
+			id: "123456789",
+			username: "testuser",
+			discriminator: "0",
+			avatar: null,
+			bot: false,
+			system: false,
+		} as any,
+		member: null,
+		username: "testuser",
+		displayName,
+		markdownSafeName: displayName
+			.replace(/\\/g, "\\\\")
+			.replace(/\*/g, "\\*")
+			.replace(/_/g, "\\_")
+			.replace(/~/g, "\\~")
+			.replace(/`/g, "\\`")
+			.replace(/\|/g, "\\|")
+			.replace(/\[/g, "\\[")
+			.replace(/\]/g, "\\]"),
+	};
+}
 
 describe("trait response formatting", () => {
 	// Helper function to create mock dice group results
@@ -27,9 +63,9 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = { traitDieResult, grandTotal: 5, rawExpression: "d8" };
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
-		expect(formatted).toContain("> 🎲 *d8*");
+		expect(formatted).toContain("> 🎲 **TestUser** *tried trait roll d8*");
 		expect(formatted).toContain("Trait Die: 1d8 [5] = **5**");
 		expect(formatted).toContain("Wild Die: 1d6 [3] = **3** discarded");
 		expect(formatted).not.toContain("CRITICAL FAILURE");
@@ -58,9 +94,9 @@ describe("trait response formatting", () => {
 			rawExpression: "d8+2 tn6",
 		};
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
-		expect(formatted).toContain("> 🎲 *d8+2 tn6*");
+		expect(formatted).toContain("> 🎲 **TestUser** *tried trait roll d8+2 tn6*");
 		expect(formatted).toContain("Trait Die: 1d8 [4] +2 = **6** discarded");
 		expect(formatted).toContain("Wild Die: 1d6 [6] +2 = **8** success");
 	});
@@ -82,7 +118,7 @@ describe("trait response formatting", () => {
 
 		const fullResult: FullTraitResult = { traitDieResult, grandTotal: 1, rawExpression: "d8" };
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
 		expect(formatted).toContain("Trait Die: 1d8 [9!] = **9**");
 		expect(formatted).toContain("Wild Die: 1d6 [8!] = **8** discarded");
@@ -111,9 +147,9 @@ describe("trait response formatting", () => {
 			rawExpression: "d8+2 tn6",
 		};
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
-		expect(formatted).toContain("> 🎲 *d8+2 tn6*");
+		expect(formatted).toContain("> 🎲 **TestUser** *tried trait roll d8+2 tn6*");
 		expect(formatted).toContain("Trait Die: 1d8 [1] +2 = **3**");
 		expect(formatted).toContain("Wild Die: 1d6 [1] +2 = **3**");
 		expect(formatted).toContain("❗ **CRITICAL FAILURE**");
@@ -146,7 +182,7 @@ describe("trait response formatting", () => {
 			rawExpression: "d8-2 tn6",
 		};
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
 		expect(formatted).toContain("Trait Die: 1d8 [5] -2 = **3** failure");
 		expect(formatted).toContain("Wild Die: 1d6 [3] -2 = **1** discarded");
@@ -175,7 +211,7 @@ describe("trait response formatting", () => {
 			rawExpression: "d8+2 tn6",
 		};
 
-		const formatted = formatTraitResult(fullResult);
+		const formatted = formatTraitResult(fullResult, createMockUserContext());
 
 		expect(formatted).toContain("Trait Die: 1d8 [8] +2 = **10** raise");
 		expect(formatted).toContain("Wild Die: 1d6 [2] +2 = **4** discarded");

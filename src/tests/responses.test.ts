@@ -1,6 +1,36 @@
 import { describe, it, expect } from "vitest";
 import { formatRollResult } from "../utils/responses.js";
-import { ExpressionState, type FullRollResult } from "../utils/index.js";
+import { ExpressionState, type FullRollResult, type UserContext } from "../utils/index.js";
+
+/**
+ * Create a mock UserContext for testing
+ */
+function createMockUserContext(displayName: string = "TestUser"): UserContext {
+	return {
+		userId: "123456789",
+		guildId: "987654321",
+		user: {
+			id: "123456789",
+			username: "testuser",
+			discriminator: "0",
+			avatar: null,
+			bot: false,
+			system: false,
+		} as any,
+		member: null,
+		username: "testuser",
+		displayName,
+		markdownSafeName: displayName
+			.replace(/\\/g, "\\\\")
+			.replace(/\*/g, "\\*")
+			.replace(/_/g, "\\_")
+			.replace(/~/g, "\\~")
+			.replace(/`/g, "\\`")
+			.replace(/\|/g, "\\|")
+			.replace(/\[/g, "\\[")
+			.replace(/\]/g, "\\]"),
+	};
+}
 
 describe("formatRollResult", () => {
 	describe("basic rolls without target number", () => {
@@ -25,7 +55,7 @@ describe("formatRollResult", () => {
 				grandTotal: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d6 [4] = **4**");
 		});
 
@@ -53,7 +83,7 @@ describe("formatRollResult", () => {
 				grandTotal: 8,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("2d6 [3, 5] = **8**");
 		});
 
@@ -94,7 +124,7 @@ describe("formatRollResult", () => {
 				grandTotal: 12,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d12 + 1d4 [7, 2] + 3 = **12**");
 		});
 
@@ -125,7 +155,7 @@ describe("formatRollResult", () => {
 				grandTotal: 15,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("5d6 [~~1~~, 6, 6, 3, ~~3~~] = **15**");
 		});
 
@@ -150,7 +180,7 @@ describe("formatRollResult", () => {
 				grandTotal: 9,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d6 [9!] = **9**");
 		});
 
@@ -201,7 +231,7 @@ describe("formatRollResult", () => {
 				globalModifier: 1,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("2d6 + 1d4 [4, ~~2~~, 3] + 1 = **8**\n1d8 [5] + 1 = **6**");
 		});
 	});
@@ -229,7 +259,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d8 [6] = **6** success");
 		});
 
@@ -255,7 +285,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d8 [3] = **3** failed");
 		});
 
@@ -281,7 +311,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4, // 8 >= 4+4, so it's a raise
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d6 [8!] = **8** raise");
 		});
 
@@ -321,7 +351,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d8 [3] = **3** failed\n1d6 [5] = **5** success");
 		});
 	});
@@ -350,7 +380,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d4 [1] - 2 = **-1** failed"); // No critical failure with only 1 die
 		});
 
@@ -376,7 +406,7 @@ describe("formatRollResult", () => {
 				globalModifier: 2,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d6 [3] + 2 = **5**");
 		});
 	});
@@ -419,7 +449,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d4 [1] - 2 = **-1** failed\n1d6 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
 		});
 
@@ -460,7 +490,7 @@ describe("formatRollResult", () => {
 				targetNumber: 4,
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("1d8 [1] + 2 = **3** failed\n1d6 [3] + 2 = **5** success");
 		});
 
@@ -489,7 +519,7 @@ describe("formatRollResult", () => {
 				// No targetNumber defined
 			};
 
-			const result = formatRollResult(mockResult);
+			const result = formatRollResult(mockResult, createMockUserContext());
 			expect(result).toBe("2d6 [1, 1] = **2**"); // No critical failure notice
 			expect(result).not.toContain("❗**CRITICAL FAILURE**");
 		});
@@ -519,8 +549,8 @@ describe("formatRollResult", () => {
 				rawExpression: "2d6",
 			};
 
-			const result = formatRollResult(mockResult);
-			expect(result).toBe("> 🎲 *2d6*\n2d6 [4, 5] = **9**");
+			const result = formatRollResult(mockResult, createMockUserContext());
+			expect(result).toBe("> 🎲 **TestUser** *rolled 2d6*\n2d6 [4, 5] = **9**");
 		});
 	});
 });

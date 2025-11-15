@@ -1,4 +1,23 @@
+import type { GuildMember, User } from "discord.js";
 import { ExpressionState } from "./enums.js";
+
+// User context for command execution
+export interface UserContext {
+	/** Discord user ID (snowflake) */
+	userId: string;
+	/** Discord guild ID (snowflake), if command was executed in a guild */
+	guildId: string | null;
+	/** Full Discord User object */
+	user: User;
+	/** Full Discord GuildMember object, if command was executed in a guild */
+	member: GuildMember | null;
+	/** User's username (e.g., "username" or "username#1234" for legacy discriminators) */
+	username: string;
+	/** User's display name (global or guild-specific if in a guild) */
+	displayName: string;
+	/** Markdown-safe version of display name for use in Discord responses */
+	markdownSafeName: string;
+}
 
 // Core building blocks
 export interface DiceGroup {
