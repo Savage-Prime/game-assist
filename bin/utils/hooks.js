@@ -7,10 +7,18 @@ import { log } from "./diags.js";
  */
 export function createPresence(client) {
     /**
-     * Internal function to set presence
+     * Internal function to set presence with logging and error handling
      */
-    async function setPresence(options) {
+    async function setPresence(options, operation) {
         try {
+            // Log the operation being performed
+            if (operation) {
+                log.info(operation, {
+                    activity: options.activity?.name,
+                    activityType: options.activity?.type,
+                    status: options.status,
+                });
+            }
             // Ensure the client is ready before setting presence
             if (!client.user) {
                 log.warn("Cannot set presence: client user not ready");
@@ -37,30 +45,32 @@ export function createPresence(client) {
             });
         }
         catch (err) {
-            log.error("Failed to set presence", { err: String(err) });
+            log.error("Failed to set presence", {
+                err: String(err),
+                operation,
+                activity: options.activity?.name,
+                status: options.status,
+            });
         }
     }
     return {
         async set(options) {
-            await setPresence(options);
+            await setPresence(options, "Setting custom presence");
         },
         async playing(gameName) {
-            await setPresence({ activity: { name: gameName, type: ActivityType.Playing }, status: "online" });
+            await setPresence({ activity: { name: gameName, type: ActivityType.Playing }, status: "online" }, "Setting playing status");
         },
         async listening(activity) {
-            await setPresence({ activity: { name: activity, type: ActivityType.Listening }, status: "online" });
+            await setPresence({ activity: { name: activity, type: ActivityType.Listening }, status: "online" }, "Setting listening status");
         },
         async watching(activity) {
-            await setPresence({ activity: { name: activity, type: ActivityType.Watching }, status: "online" });
+            await setPresence({ activity: { name: activity, type: ActivityType.Watching }, status: "online" }, "Setting watching status");
         },
         async streaming(streamName, streamUrl) {
-            await setPresence({
-                activity: { name: streamName, type: ActivityType.Streaming, url: streamUrl },
-                status: "online",
-            });
+            await setPresence({ activity: { name: streamName, type: ActivityType.Streaming, url: streamUrl }, status: "online" }, "Setting streaming status");
         },
         async clear() {
-            await setPresence({ status: "online" });
+            await setPresence({ status: "online" }, "Clearing presence activity");
         },
     };
 }

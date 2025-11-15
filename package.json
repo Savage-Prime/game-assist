@@ -16,9 +16,9 @@
     "build-and-test": "npm run build && npm run test-run",
     "evaluate-rng": "vitest run --config vitest.evaluation.config.ts",
     "dry-run": "tsx src/scripts/deploy-api.ts --dry-run",
-    "guild-run": "tsx src/scripts/deploy-api.ts --guild-id 1409236103847743520",
-    "global-run": "tsx src/scripts/deploy-api.ts",
-    "clear-guild": "tsx src/scripts/deploy-api.ts --clear-guild --guild-id 1409236103847743520"
+    "deploy:dev": "tsx src/scripts/deploy-api.ts --guild-id 1411791453923053681",
+    "deploy:prod": "NODE_ENV=production tsx src/scripts/deploy-api.ts",
+    "clear-guild": "tsx src/scripts/deploy-api.ts --clear-guild --guild-id 1411791453923053681"
   },
   "repository": {
     "type": "git",
