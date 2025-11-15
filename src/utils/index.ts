@@ -15,12 +15,14 @@ export type {
 	DiceGroupResult,
 	ExpressionResult,
 	TraitDieResult,
+	UserContext,
 } from "./types.js";
 
 // Legacy interfaces for backward compatibility
 export type { ParsedRollExpression, FullRollResult, ParsedTraitExpression, FullTraitResult } from "./types.js";
 
 export { parseRollExpression, parseTraitExpression } from "./parse.js";
+export { extractUserContext } from "./command-handler.js";
 export {
 	rollDice,
 	rollDiceGroup,
