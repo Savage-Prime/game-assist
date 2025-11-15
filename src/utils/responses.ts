@@ -138,7 +138,7 @@ export function formatTraitResult(result: FullTraitResult, userContext: UserCont
 	// Build the original expression for display
 	let originalExpression = "";
 	if (result.rawExpression) {
-		originalExpression = `> 🎲 **${userContext.markdownSafeName}** *tried trait roll ${result.rawExpression}*\n`;
+		originalExpression = `> 🎲 **${userContext.markdownSafeName}** *rolled trait ${result.rawExpression}*\n`;
 	}
 
 	// Helper function to format dice rolls for display
