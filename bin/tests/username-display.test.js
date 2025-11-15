@@ -143,7 +143,7 @@ describe("Username display in responses", () => {
             };
             const result = formatTraitResult(mockResult, createMockUserContext("PlayerName"));
             expect(result).toContain("**PlayerName**");
-            expect(result).toContain("*tried trait roll d8+2*");
+            expect(result).toContain("*rolled trait d8+2*");
         });
         it("should work without username", () => {
             const mockResult = {
@@ -170,9 +170,9 @@ describe("Username display in responses", () => {
             };
             const result = formatTraitResult(mockResult, createMockUserContext("User"));
             // Should have username in bold in the header
-            expect(result).toMatch(/\*\*User\*\* \*tried trait roll/);
+            expect(result).toMatch(/\*\*User\*\* \*rolled trait/);
             // Should have the roll expression (in the header, in italics)
-            expect(result).toContain("*tried trait roll d8*");
+            expect(result).toContain("*rolled trait d8*");
             // Should have the results in bold
             expect(result).toContain("**5**");
         });
