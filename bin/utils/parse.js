@@ -41,8 +41,9 @@ function removeTargetHighest(expression) {
 }
 export function parseRollExpression(expression) {
     // Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
+    // The x pattern can appear anywhere in the expression since order doesn't matter
     let repetitionCount = 1;
-    const xMatch = expression.toLowerCase().match(/\s*x\s*(\d*)\s*$/);
+    const xMatch = expression.toLowerCase().match(/\s*x\s*(\d*)/);
     if (xMatch) {
         const countStr = xMatch[1];
         if (countStr === "" || countStr === undefined) {
@@ -55,8 +56,8 @@ export function parseRollExpression(expression) {
             repetitionCount = parsedCount < 2 ? 1 : parsedCount;
         }
     }
-    // Remove the x pattern from the original expression before further processing
-    let expressionWithoutX = expression.replace(/\s*x\s*\d*\s*$/i, "");
+    // Remove the x pattern from the expression before further processing
+    let expressionWithoutX = expression.replace(/\s*x\s*\d*/i, "");
     // Clean up the expression
     const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();
     // Initialize result
@@ -78,7 +79,9 @@ export function parseRollExpression(expression) {
             result.targetHighest = targetHighest;
         }
         else {
-            addValidationMessage("Target highest (th) requires target number (t/tn) to be specified", { targetHighest });
+            addValidationMessage("Target highest (th) requires target number (t/tn) to be specified", {
+                targetHighest,
+            });
         }
     }
     // Extract global modifier if present: (1), (+1), (-1)
