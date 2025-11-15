@@ -10,8 +10,25 @@ export class Diags {
     constructor() {
         this.traceEnabled = GetEnvBool("TRACE_LOG", false);
     }
+    formatTimestamp() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
+        // Get UTC offset in minutes and format as (+/-)HHMM
+        const offsetMinutes = -now.getTimezoneOffset();
+        const offsetSign = offsetMinutes >= 0 ? "+" : "-";
+        const offsetHours = String(Math.floor(Math.abs(offsetMinutes) / 60)).padStart(2, "0");
+        const offsetMins = String(Math.abs(offsetMinutes) % 60).padStart(2, "0");
+        const offset = `${offsetSign}${offsetHours}${offsetMins}`;
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${milliseconds} (${offset})`;
+    }
     emit(level, msg, extra = {}) {
-        const base = { ts: new Date().toISOString(), level, msg, pid: process.pid };
+        const base = { ts: this.formatTimestamp(), level, msg, pid: process.pid };
         if (extra && Object.keys(extra).length)
             base.data = extra; // prevent clobbering msg/level
         const line = JSON.stringify(base, jsonReplacer);

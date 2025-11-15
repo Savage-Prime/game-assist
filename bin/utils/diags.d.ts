@@ -2,6 +2,7 @@ import type { ChatInputCommandInteraction } from "discord.js";
 export declare class Diags {
     private readonly traceEnabled;
     constructor();
+    private formatTimestamp;
     private emit;
     trace(msg: string, extra?: Record<string, unknown>): void;
     info(msg: string, extra?: Record<string, unknown>): void;
