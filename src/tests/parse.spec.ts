@@ -253,6 +253,122 @@ describe("parseRollExpression", () => {
 			expect(result4.expressions).toHaveLength(3);
 		});
 	});
+
+	describe("modifier order independence", () => {
+		it("should parse x modifier anywhere in expression with kh", () => {
+			// All these should be equivalent
+			const result1 = parseRollExpression("5d6! x6 kh3 tn10");
+			const result2 = parseRollExpression("5d6! kh3 x6 tn10");
+			const result3 = parseRollExpression("5d6! kh3 tn10 x6");
+			const result4 = parseRollExpression("x6 5d6! kh3 tn10");
+
+			// All should create 6 expressions
+			expect(result1.expressions).toHaveLength(6);
+			expect(result2.expressions).toHaveLength(6);
+			expect(result3.expressions).toHaveLength(6);
+			expect(result4.expressions).toHaveLength(6);
+
+			// All should have the same dice spec
+			const group1 = result1.expressions[0]?.diceGroups[0]?.group;
+			const group2 = result2.expressions[0]?.diceGroups[0]?.group;
+			const group3 = result3.expressions[0]?.diceGroups[0]?.group;
+			const group4 = result4.expressions[0]?.diceGroups[0]?.group;
+
+			expect(group1).toEqual(group2);
+			expect(group1).toEqual(group3);
+			expect(group1).toEqual(group4);
+
+			expect(group1?.quantity).toBe(5);
+			expect(group1?.sides).toBe(6);
+			expect(group1?.exploding).toBe(true);
+			expect(group1?.keepHighest).toBe(3);
+
+			// All should have the same target number
+			expect(result1.targetNumber).toBe(10);
+			expect(result2.targetNumber).toBe(10);
+			expect(result3.targetNumber).toBe(10);
+			expect(result4.targetNumber).toBe(10);
+		});
+
+		it("should parse tn and global modifier in any order", () => {
+			const result1 = parseRollExpression("2d6 tn8 (+2)");
+			const result2 = parseRollExpression("2d6 (+2) tn8");
+
+			expect(result1.targetNumber).toBe(8);
+			expect(result2.targetNumber).toBe(8);
+			expect(result1.globalModifier).toBe(2);
+			expect(result2.globalModifier).toBe(2);
+
+			// Dice specs should be identical
+			expect(result1.expressions[0]?.diceGroups[0]?.group).toEqual(result2.expressions[0]?.diceGroups[0]?.group);
+		});
+
+		it("should parse x modifier with complex expressions", () => {
+			// x can be anywhere with multiple modifiers
+			const result1 = parseRollExpression("4d8! kh3 x2 tn6 (+2)");
+			const result2 = parseRollExpression("x2 4d8! kh3 tn6 (+2)");
+			const result3 = parseRollExpression("4d8! kh3 tn6 (+2) x2");
+
+			// All should create 2 expressions
+			expect(result1.expressions).toHaveLength(2);
+			expect(result2.expressions).toHaveLength(2);
+			expect(result3.expressions).toHaveLength(2);
+
+			// All should have identical specs
+			expect(result1.targetNumber).toBe(6);
+			expect(result2.targetNumber).toBe(6);
+			expect(result3.targetNumber).toBe(6);
+
+			expect(result1.globalModifier).toBe(2);
+			expect(result2.globalModifier).toBe(2);
+			expect(result3.globalModifier).toBe(2);
+
+			const group1 = result1.expressions[0]?.diceGroups[0]?.group;
+			const group2 = result2.expressions[0]?.diceGroups[0]?.group;
+			const group3 = result3.expressions[0]?.diceGroups[0]?.group;
+
+			expect(group1).toEqual(group2);
+			expect(group1).toEqual(group3);
+		});
+
+		it("should parse dice modifiers independent of position", () => {
+			// kh, tn, and ! should work in any order
+			const result1 = parseRollExpression("4d6! kh2 tn4");
+			const result2 = parseRollExpression("4d6 kh2 ! tn4");
+			const result3 = parseRollExpression("4d6 tn4 kh2 !");
+
+			const group1 = result1.expressions[0]?.diceGroups[0]?.group;
+			const group2 = result2.expressions[0]?.diceGroups[0]?.group;
+			const group3 = result3.expressions[0]?.diceGroups[0]?.group;
+
+			// All should have same properties
+			expect(group1?.exploding).toBe(true);
+			expect(group2?.exploding).toBe(true);
+			expect(group3?.exploding).toBe(true);
+
+			expect(group1?.keepHighest).toBe(2);
+			expect(group2?.keepHighest).toBe(2);
+			expect(group3?.keepHighest).toBe(2);
+
+			expect(result1.targetNumber).toBe(4);
+			expect(result2.targetNumber).toBe(4);
+			expect(result3.targetNumber).toBe(4);
+		});
+
+		it("should handle x pattern with multiple expressions in different orders", () => {
+			const result1 = parseRollExpression("x3 1d6,2d8,3d10");
+			const result2 = parseRollExpression("1d6,2d8,3d10 x3");
+
+			// Both should create 9 expressions total (3 original × 3 repetitions)
+			expect(result1.expressions).toHaveLength(9);
+			expect(result2.expressions).toHaveLength(9);
+
+			// First expression in each group should be identical
+			expect(result1.expressions[0]?.diceGroups[0]?.group).toEqual(result2.expressions[0]?.diceGroups[0]?.group);
+			expect(result1.expressions[3]?.diceGroups[0]?.group).toEqual(result2.expressions[3]?.diceGroups[0]?.group);
+			expect(result1.expressions[6]?.diceGroups[0]?.group).toEqual(result2.expressions[6]?.diceGroups[0]?.group);
+		});
+	});
 });
 
 describe("parseTraitExpression", () => {
@@ -395,6 +511,116 @@ describe("parseTraitExpression", () => {
 			expect(result2.targetNumber).toBe(6);
 			expect(result3.globalModifier).toBe(2);
 			expect(result3.targetNumber).toBe(6);
+		});
+	});
+
+	describe("trait modifier order independence", () => {
+		it("should parse trait modifiers in any order when modifier is attached to die", () => {
+			// Modifier must be attached to die spec (d8+2), but wd, tn can be anywhere
+			const result1 = parseTraitExpression("d8+2 wd6 tn4");
+			const result2 = parseTraitExpression("d8+2 tn4 wd6");
+			const result3 = parseTraitExpression("wd6 d8+2 tn4");
+			const result4 = parseTraitExpression("tn4 d8+2 wd6");
+
+			// All should have the same trait die
+			expect(result1.traitDie.sides).toBe(8);
+			expect(result2.traitDie.sides).toBe(8);
+			expect(result3.traitDie.sides).toBe(8);
+			expect(result4.traitDie.sides).toBe(8);
+
+			// All should have the same wild die
+			expect(result1.wildDie.sides).toBe(6);
+			expect(result2.wildDie.sides).toBe(6);
+			expect(result3.wildDie.sides).toBe(6);
+			expect(result4.wildDie.sides).toBe(6);
+
+			// All should have the same target number
+			expect(result1.targetNumber).toBe(4);
+			expect(result2.targetNumber).toBe(4);
+			expect(result3.targetNumber).toBe(4);
+			expect(result4.targetNumber).toBe(4);
+
+			// All should have the same global modifier
+			expect(result1.globalModifier).toBe(2);
+			expect(result2.globalModifier).toBe(2);
+			expect(result3.globalModifier).toBe(2);
+			expect(result4.globalModifier).toBe(2);
+		});
+
+		it("should parse th and tn in any order", () => {
+			const result1 = parseTraitExpression("d8 th2 tn6");
+			const result2 = parseTraitExpression("d8 tn6 th2");
+			const result3 = parseTraitExpression("tn6 d8 th2");
+			const result4 = parseTraitExpression("th2 tn6 d8");
+
+			expect(result1.targetHighest).toBe(2);
+			expect(result2.targetHighest).toBe(2);
+			expect(result3.targetHighest).toBe(2);
+			expect(result4.targetHighest).toBe(2);
+
+			expect(result1.targetNumber).toBe(6);
+			expect(result2.targetNumber).toBe(6);
+			expect(result3.targetNumber).toBe(6);
+			expect(result4.targetNumber).toBe(6);
+		});
+
+		it("should handle all trait modifiers in different orders", () => {
+			// Modifier attached to die, other modifiers can be anywhere
+			const result1 = parseTraitExpression("d12+3 wd8 tn8 th1");
+			const result2 = parseTraitExpression("th1 tn8 d12+3 wd8");
+			const result3 = parseTraitExpression("wd8 th1 d12+3 tn8");
+
+			// All should produce identical results
+			expect(result1.traitDie.sides).toBe(12);
+			expect(result2.traitDie.sides).toBe(12);
+			expect(result3.traitDie.sides).toBe(12);
+
+			expect(result1.wildDie.sides).toBe(8);
+			expect(result2.wildDie.sides).toBe(8);
+			expect(result3.wildDie.sides).toBe(8);
+
+			expect(result1.targetNumber).toBe(8);
+			expect(result2.targetNumber).toBe(8);
+			expect(result3.targetNumber).toBe(8);
+
+			expect(result1.globalModifier).toBe(3);
+			expect(result2.globalModifier).toBe(3);
+			expect(result3.globalModifier).toBe(3);
+
+			expect(result1.targetHighest).toBe(1);
+			expect(result2.targetHighest).toBe(1);
+			expect(result3.targetHighest).toBe(1);
+		});
+
+		it("should parse shorthand 't' and full 'tn' equivalently regardless of order", () => {
+			const result1 = parseTraitExpression("d8+1 t6");
+			const result2 = parseTraitExpression("d8+1 tn6");
+			const result3 = parseTraitExpression("t6 d8+1");
+			const result4 = parseTraitExpression("tn6 d8+1");
+
+			expect(result1.targetNumber).toBe(6);
+			expect(result2.targetNumber).toBe(6);
+			expect(result3.targetNumber).toBe(6);
+			expect(result4.targetNumber).toBe(6);
+
+			expect(result1.globalModifier).toBe(1);
+			expect(result2.globalModifier).toBe(1);
+			expect(result3.globalModifier).toBe(1);
+			expect(result4.globalModifier).toBe(1);
+		});
+
+		it("should parse parenthetical modifier in any order", () => {
+			const result1 = parseTraitExpression("d8 (+2) wd6 tn4");
+			const result2 = parseTraitExpression("(+2) d8 wd6 tn4");
+			const result3 = parseTraitExpression("wd6 d8 (+2) tn4");
+
+			expect(result1.globalModifier).toBe(2);
+			expect(result2.globalModifier).toBe(2);
+			expect(result3.globalModifier).toBe(2);
+
+			expect(result1.targetNumber).toBe(4);
+			expect(result2.targetNumber).toBe(4);
+			expect(result3.targetNumber).toBe(4);
 		});
 	});
 });
