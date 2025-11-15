@@ -1,5 +1,15 @@
 // Load dotenv only in development
-if (process.env["NODE_ENV"] !== "production") {
+const rawNodeEnv = process.env["NODE_ENV"];
+const nodeEnv = typeof rawNodeEnv === "string" ? rawNodeEnv.trim().toLowerCase() : undefined;
+
+// If NODE_ENV === 'production' then we're in production; any other value (or undefined) => inDevelopment.
+export const inDevelopment = nodeEnv !== "production";
+
+// Safety check: warn if NODE_ENV is set to an unexpected value (neither 'production' nor 'development').
+if (nodeEnv && nodeEnv !== "production" && nodeEnv !== "development") {
+	console.warn(`[env] Unrecognized NODE_ENV="${rawNodeEnv}". Treating as development for safety.`);
+}
+if (inDevelopment) {
 	await import("dotenv/config");
 }
 
@@ -21,9 +31,12 @@ export function GetRequiredEnv(name: string): string {
 }
 
 export function GetDiscordEnv(): { token: string; appId: string; guildId?: string } {
-	const token = GetRequiredEnv("DISCORD_TOKEN");
-	const appId = GetRequiredEnv("APPLICATION_ID");
+	const tokenEnvKey = inDevelopment ? "DEV-DISCORD_TOKEN" : "DISCORD_TOKEN";
+	const token = GetRequiredEnv(tokenEnvKey);
+	const appIdEnvKey = inDevelopment ? "DEV-APPLICATION_ID" : "APPLICATION_ID";
+	const appId = GetRequiredEnv(appIdEnvKey);
 	const guildId = GetEnv("GUILD_ID");
+
 	if (guildId === undefined) {
 		return { token, appId };
 	}
