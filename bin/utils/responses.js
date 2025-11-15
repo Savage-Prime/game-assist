@@ -3,9 +3,10 @@ import { ExpressionState, isFullRollCriticalFailure } from "./index.js";
  * Formats the result of a roll command using unified linear format
  * Pattern: dice [rolls] modifiers = **result** [state]
  * @param result The full roll result from rollParsedExpression
+ * @param userContext The user context containing display name and other user info
  * @returns Formatted string ready for Discord display
  */
-export function formatRollResult(result) {
+export function formatRollResult(result, userContext) {
     const isTargetNumber = result.targetNumber !== undefined;
     const hasCriticalFailure = isFullRollCriticalFailure(result);
     // Process each expression separately
@@ -94,9 +95,9 @@ export function formatRollResult(result) {
     }
     // Join all expression lines with reversed formatting
     let response = "";
-    // Add quoted raw expression with emoji if available (dimmed)
+    // Add header with username and raw expression
     if (result.rawExpression) {
-        response += `> 🎲 *${result.rawExpression}*\n`;
+        response += `> 🎲 **${userContext.markdownSafeName}** *rolled ${result.rawExpression}*\n`;
     }
     // Add results without quote formatting (bright)
     response += expressionLines.join("\n");
@@ -111,16 +112,17 @@ export function formatRollResult(result) {
  * Pattern: Trait Die: dice [rolls] modifiers = **result** [state]
  *          Wild Die: dice [rolls] modifiers = **result** [state]
  * @param result The full trait result from rollParsedTraitExpression
+ * @param userContext The user context containing display name and other user info
  * @returns Formatted string ready for Discord display
  */
-export function formatTraitResult(result) {
+export function formatTraitResult(result, userContext) {
     const { traitDieResult } = result;
     const hasCriticalFailure = traitDieResult.isCriticalFailure;
     const globalMod = result.globalModifier || 0;
     // Build the original expression for display
     let originalExpression = "";
     if (result.rawExpression) {
-        originalExpression = `> 🎲 *${result.rawExpression}*\n`;
+        originalExpression = `> 🎲 **${userContext.markdownSafeName}** *tried trait roll ${result.rawExpression}*\n`;
     }
     // Helper function to format dice rolls for display
     const formatRolls = (rolls) => {

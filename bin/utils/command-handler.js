@@ -1,5 +1,39 @@
 import { formatErrorMessage, formatWarningMessage, getCommandConfig } from "./messages.js";
 /**
+ * Escape special Markdown characters in text to prevent formatting issues
+ */
+function escapeMarkdown(text) {
+    // Escape backslash first, then other special characters
+    return text
+        .replace(/\\/g, "\\\\")
+        .replace(/\*/g, "\\*")
+        .replace(/_/g, "\\_")
+        .replace(/~/g, "\\~")
+        .replace(/`/g, "\\`")
+        .replace(/\|/g, "\\|")
+        .replace(/\[/g, "\\[")
+        .replace(/\]/g, "\\]");
+}
+/**
+ * Extract user context from a Discord interaction
+ */
+export function extractUserContext(interaction) {
+    const user = interaction.user;
+    const member = interaction.member && typeof interaction.member === "object" ? interaction.member : null;
+    const guildId = interaction.guildId;
+    // Prioritize guild member display name, then global display name, then username
+    const displayName = member?.displayName ?? user.displayName ?? user.username;
+    return {
+        userId: user.id,
+        guildId,
+        user,
+        member,
+        username: user.username,
+        displayName,
+        markdownSafeName: escapeMarkdown(displayName),
+    };
+}
+/**
  * Generic command handler that implements the common pattern:
  * 1. Parse input
  * 2. Check for errors and show help if invalid (ephemeral response)
@@ -22,8 +56,9 @@ export async function handleDiceCommand(interaction, config) {
     const warningMessage = formatWarningMessage(parseResult.validationMessages);
     // Step 4: Execute the operation
     const executionResult = await config.executeFunction(parseResult, input);
-    // Step 5: Format the response
-    const formattedResponse = config.formatFunction(executionResult);
+    // Step 5: Extract user context and format the response
+    const userContext = extractUserContext(interaction);
+    const formattedResponse = config.formatFunction(executionResult, userContext);
     // Step 6: Reply to the interaction
     await interaction.reply(warningMessage + formattedResponse);
 }

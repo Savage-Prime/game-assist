@@ -3,6 +3,7 @@ export { ExpressionState } from "./enums.js";
 // Constants
 export * from "./constants.js";
 export { parseRollExpression, parseTraitExpression } from "./parse.js";
+export { extractUserContext } from "./command-handler.js";
 export { rollDice, rollDiceGroup, rollExpression, rollParsedExpression, rollParsedTraitExpression, isCriticalFailure, isFullRollCriticalFailure, } from "./dice.js";
 // Command utilities
 export { handleDiceCommand, createDiceCommand } from "./command-handler.js";

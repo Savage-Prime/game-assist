@@ -1,6 +1,35 @@
 import { describe, it, expect } from "vitest";
 import { formatRollResult } from "../utils/responses.js";
 import { ExpressionState } from "../utils/index.js";
+/**
+ * Create a mock UserContext for testing
+ */
+function createMockUserContext(displayName = "TestUser") {
+    return {
+        userId: "123456789",
+        guildId: "987654321",
+        user: {
+            id: "123456789",
+            username: "testuser",
+            discriminator: "0",
+            avatar: null,
+            bot: false,
+            system: false,
+        },
+        member: null,
+        username: "testuser",
+        displayName,
+        markdownSafeName: displayName
+            .replace(/\\/g, "\\\\")
+            .replace(/\*/g, "\\*")
+            .replace(/_/g, "\\_")
+            .replace(/~/g, "\\~")
+            .replace(/`/g, "\\`")
+            .replace(/\|/g, "\\|")
+            .replace(/\[/g, "\\[")
+            .replace(/\]/g, "\\]"),
+    };
+}
 describe("formatRollResult", () => {
     describe("basic rolls without target number", () => {
         it("should format a simple single dice roll", () => {
@@ -23,7 +52,7 @@ describe("formatRollResult", () => {
                 ],
                 grandTotal: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d6 [4] = **4**");
         });
         it("should format multiple dice in one expression", () => {
@@ -49,7 +78,7 @@ describe("formatRollResult", () => {
                 ],
                 grandTotal: 8,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("2d6 [3, 5] = **8**");
         });
         it("should format dice with number modifier", () => {
@@ -88,7 +117,7 @@ describe("formatRollResult", () => {
                 ],
                 grandTotal: 12,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d12 + 1d4 [7, 2] + 3 = **12**");
         });
         it("should format rolls with keep highest (showing all rolls)", () => {
@@ -117,7 +146,7 @@ describe("formatRollResult", () => {
                 ],
                 grandTotal: 15,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("5d6 [~~1~~, 6, 6, 3, ~~3~~] = **15**");
         });
         it("should format exploding dice", () => {
@@ -140,7 +169,7 @@ describe("formatRollResult", () => {
                 ],
                 grandTotal: 9,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d6 [9!] = **9**");
         });
         it("should format multiple expressions without target number", () => {
@@ -189,7 +218,7 @@ describe("formatRollResult", () => {
                 grandTotal: 13, // 7 + 5 + 1 (global modifier)
                 globalModifier: 1,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("2d6 + 1d4 [4, ~~2~~, 3] + 1 = **8**\n1d8 [5] + 1 = **6**");
         });
     });
@@ -215,7 +244,7 @@ describe("formatRollResult", () => {
                 grandTotal: 6,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d8 [6] = **6** success");
         });
         it("should format failed roll with target number", () => {
@@ -239,7 +268,7 @@ describe("formatRollResult", () => {
                 grandTotal: 3,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d8 [3] = **3** failed");
         });
         it("should format raise with target number", () => {
@@ -263,7 +292,7 @@ describe("formatRollResult", () => {
                 grandTotal: 8,
                 targetNumber: 4, // 8 >= 4+4, so it's a raise
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d6 [8!] = **8** raise");
         });
         it("should format multiple expressions with target number", () => {
@@ -301,7 +330,7 @@ describe("formatRollResult", () => {
                 grandTotal: 8,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d8 [3] = **3** failed\n1d6 [5] = **5** success");
         });
     });
@@ -328,7 +357,7 @@ describe("formatRollResult", () => {
                 globalModifier: -2,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d4 [1] - 2 = **-1** failed"); // No critical failure with only 1 die
         });
         it("should format positive global modifier", () => {
@@ -352,7 +381,7 @@ describe("formatRollResult", () => {
                 grandTotal: 5, // 3 + 2 = 5
                 globalModifier: 2,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d6 [3] + 2 = **5**");
         });
     });
@@ -393,7 +422,7 @@ describe("formatRollResult", () => {
                 globalModifier: -2,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d4 [1] - 2 = **-1** failed\n1d6 [1] - 2 = **-1** failed\n❗**CRITICAL FAILURE**");
         });
         it("should NOT show critical failure when only some dice roll 1s", () => {
@@ -432,7 +461,7 @@ describe("formatRollResult", () => {
                 globalModifier: 2,
                 targetNumber: 4,
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("1d8 [1] + 2 = **3** failed\n1d6 [3] + 2 = **5** success");
         });
         it("should NOT show critical failure without target number", () => {
@@ -459,7 +488,7 @@ describe("formatRollResult", () => {
                 grandTotal: 2,
                 // No targetNumber defined
             };
-            const result = formatRollResult(mockResult);
+            const result = formatRollResult(mockResult, createMockUserContext());
             expect(result).toBe("2d6 [1, 1] = **2**"); // No critical failure notice
             expect(result).not.toContain("❗**CRITICAL FAILURE**");
         });
@@ -487,8 +516,8 @@ describe("formatRollResult", () => {
                 grandTotal: 9,
                 rawExpression: "2d6",
             };
-            const result = formatRollResult(mockResult);
-            expect(result).toBe("> 🎲 *2d6*\n2d6 [4, 5] = **9**");
+            const result = formatRollResult(mockResult, createMockUserContext());
+            expect(result).toBe("> 🎲 **TestUser** *rolled 2d6*\n2d6 [4, 5] = **9**");
         });
     });
 });

@@ -1,4 +1,9 @@
 import type { ChatInputCommandInteraction } from "discord.js";
+import type { UserContext } from "./types.js";
+/**
+ * Extract user context from a Discord interaction
+ */
+export declare function extractUserContext(interaction: ChatInputCommandInteraction): UserContext;
 /**
  * Base interface for parsed expressions that have validation messages
  */
@@ -18,7 +23,7 @@ export interface CommandHandlerConfig<TParseData extends ParsedExpression, TExec
     commandName: string;
     parseFunction: (input: string) => TParseData;
     executeFunction: (parseData: TParseData, originalInput: string) => TExecResult | Promise<TExecResult>;
-    formatFunction: (result: TExecResult) => string;
+    formatFunction: (result: TExecResult, userContext: UserContext) => string;
     validateParseResult: (parseResult: TParseData) => boolean;
 }
 /**
