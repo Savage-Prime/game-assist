@@ -278,6 +278,79 @@ describe("rollParsedExpression", () => {
 		expect(result.expressionResults[0]?.state).toBe(ExpressionState.Raise); // 12 >= 8 + 4
 	});
 
+	it("should calculate raises relative to target number (TN 4)", async () => {
+		mockRandomInt.mockReturnValueOnce(4).mockReturnValueOnce(4); // 2d6 = 8
+
+		const parsed: RollSpecification = {
+			expressions: [{ diceGroups: [{ group: { quantity: 2, sides: 6 }, operator: "+" }] }],
+			targetNumber: 4,
+			validationMessages: [],
+		};
+
+		const result = await rollParsedExpression(parsed);
+
+		// Target 4, raise at 8 (4 + 4)
+		expect(result.expressionResults[0]?.state).toBe(ExpressionState.Raise); // 8 >= 4 + 4
+	});
+
+	it("should calculate raises relative to target number (TN 6)", async () => {
+		mockRandomInt.mockReturnValueOnce(5).mockReturnValueOnce(5); // 2d6 = 10
+
+		const parsed: RollSpecification = {
+			expressions: [{ diceGroups: [{ group: { quantity: 2, sides: 6 }, operator: "+" }] }],
+			targetNumber: 6,
+			validationMessages: [],
+		};
+
+		const result = await rollParsedExpression(parsed);
+
+		// Target 6, raise at 10 (6 + 4), not at 8
+		expect(result.expressionResults[0]?.state).toBe(ExpressionState.Raise); // 10 >= 6 + 4
+	});
+
+	it("should not raise when exactly 4 below threshold (TN 6)", async () => {
+		mockRandomInt.mockReturnValueOnce(4).mockReturnValueOnce(4); // 2d6 = 8
+
+		const parsed: RollSpecification = {
+			expressions: [{ diceGroups: [{ group: { quantity: 2, sides: 6 }, operator: "+" }] }],
+			targetNumber: 6,
+			validationMessages: [],
+		};
+
+		const result = await rollParsedExpression(parsed);
+
+		// Target 6, need 10 for raise, got 8
+		expect(result.expressionResults[0]?.state).toBe(ExpressionState.Success); // 8 >= 6 but < 10
+	});
+
+	it("should calculate raises relative to target number (TN 10)", async () => {
+		mockRandomInt
+			.mockReturnValueOnce(6)
+			.mockReturnValueOnce(6)
+			.mockReturnValueOnce(2) // First die: 6+6+2 = 14
+			.mockReturnValueOnce(3); // Second die: 3
+
+		const parsed: RollSpecification = {
+			expressions: [
+				{
+					diceGroups: [
+						{
+							group: { quantity: 2, sides: 6, exploding: true, infinite: true, explodingNumber: 6 },
+							operator: "+",
+						},
+					],
+				},
+			],
+			targetNumber: 10,
+			validationMessages: [],
+		};
+
+		const result = await rollParsedExpression(parsed);
+
+		// Total: 14 + 3 = 17. Target 10, raise at 14 (10 + 4)
+		expect(result.expressionResults[0]?.state).toBe(ExpressionState.Raise); // 17 >= 10 + 4
+	});
+
 	it("should detect failures", async () => {
 		mockRandomInt.mockReturnValueOnce(1).mockReturnValueOnce(2); // 2d6 = 3
 

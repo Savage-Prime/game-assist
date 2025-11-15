@@ -182,9 +182,15 @@ interface RollOutcome {
 Parses a dice expression string into a structured specification.
 
 **Parameters**:
-- `expression`: String like "2d6+3", "1d8!!;1d6", "4d6kh3 tn4"
+- `expression`: String like "2d6+3", "1d8!!;1d6", "4d6kh3 t4" or "4d6kh3 tn4"
 
 **Returns**: `RollSpecification` with validation messages
+
+**Supported Syntax**:
+- Target Number: `tn<number>` or `t<number>` (e.g., `tn4`, `t6`) - sets the difficulty threshold (`t` and `tn` are equivalent)
+- Target Highest: `th<number>` (e.g., `th2`) - when used with target number, counts only the top N successful expressions
+- Raises: Automatically calculated as target number + 4 (e.g., target 6 requires 10 for a raise)
+- Note: `th` requires `t`/`tn` to be specified
 
 **Examples**:
 ```typescript
@@ -197,6 +203,15 @@ const result = parseRollExpression("2d6+3");
 const complex = parseRollExpression("1d8!!;1d6 tn4");
 // result.expressions: [expression1, expression2]
 // result.targetNumber: 4
+
+const shorthand = parseRollExpression("2d6 t8");
+// Equivalent to "2d6 tn8" (both use the same target number)
+// result.targetNumber: 8
+
+const withTargetHighest = parseRollExpression("1d6;2d6;3d6 tn4 th2");
+// Roll three expressions, count only top 2 that meet TN 4
+// result.targetNumber: 4
+// result.targetHighest: 2
 ```
 
 #### `parseTraitExpression(expression: string): TraitSpecification`
@@ -204,9 +219,15 @@ const complex = parseRollExpression("1d8!!;1d6 tn4");
 Parses a Savage Worlds trait expression.
 
 **Parameters**:
-- `expression`: String like "d8", "d10+1 tn6", "d4 wd6 (+2) tn4"
+- `expression`: String like "d8", "d10+1 t6", "d4 wd6 (+2) tn4"
 
 **Returns**: `TraitSpecification` with validation messages
+
+**Supported Syntax**:
+- Target Number: `tn<number>` or `t<number>` (e.g., `tn4`, `t6`) - sets the difficulty threshold (`t` and `tn` are equivalent)
+- Target Highest: `th1` (default, always 1 for single trait rolls) - compares trait vs wild die to keep highest
+- Raises: Automatically calculated as target number + 4
+- Note: Unlike `/roll`, trait `th` is always 1 and represents choosing between trait and wild die
 
 **Examples**:
 ```typescript
@@ -215,6 +236,11 @@ const result = parseTraitExpression("d8+1 tn6");
 // result.wildDie: { quantity: 1, sides: 6, infinite: true }
 // result.globalModifier: 1
 // result.targetNumber: 6
+
+const shorthand = parseTraitExpression("d10 t6 th1");
+// Equivalent to "d10 tn6 th1" (t and tn both set target number)
+// result.targetNumber: 6
+// result.targetHighest: 1
 ```
 
 ### Execution Functions

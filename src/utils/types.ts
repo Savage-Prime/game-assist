@@ -29,6 +29,7 @@ export interface ExpressionResult {
 export interface RollSpecification {
 	expressions: Array<{ diceGroups: Array<{ group: DiceGroup; operator: "+" | "-" }> }>;
 	targetNumber?: number;
+	targetHighest?: number;
 	globalModifier?: number;
 	rawExpression?: string;
 	validationMessages: string[];
@@ -38,10 +39,10 @@ export interface TraitSpecification {
 	traitDie: DiceGroup;
 	wildDie: DiceGroup;
 	targetNumber?: number;
+	targetHighest?: number;
 	globalModifier?: number;
 	rawExpression?: string;
 	validationMessages: string[];
-	targetHighest?: number;
 }
 
 export interface StandardRollDetails {
