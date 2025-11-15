@@ -31,6 +31,7 @@ export interface RollSpecification {
         }>;
     }>;
     targetNumber?: number;
+    targetHighest?: number;
     globalModifier?: number;
     rawExpression?: string;
     validationMessages: string[];
@@ -39,10 +40,10 @@ export interface TraitSpecification {
     traitDie: DiceGroup;
     wildDie: DiceGroup;
     targetNumber?: number;
+    targetHighest?: number;
     globalModifier?: number;
     rawExpression?: string;
     validationMessages: string[];
-    targetHighest?: number;
 }
 export interface StandardRollDetails {
     expressionResults: ExpressionResult[];

@@ -150,6 +150,44 @@ describe("trait roll mechanics", () => {
             expect(result.traitDieResult.state).toBe(ExpressionState.Raise);
             expect(result.traitDieResult.finalTotal).toBe(9); // trait chosen
         });
+        it("should calculate raises relative to target number (TN 4)", () => {
+            // Roll 8 with target 4 should be a raise (4 + 4 = 8)
+            mockRandomInt.mockReturnValueOnce(8).mockReturnValueOnce(3);
+            const parsed = parseTraitExpression("d10 tn4");
+            const result = rollParsedTraitExpression(parsed);
+            expect(result.traitDieResult.state).toBe(ExpressionState.Raise);
+            expect(result.traitDieResult.finalTotal).toBe(8);
+        });
+        it("should calculate raises relative to target number (TN 6)", () => {
+            // Roll 10 with target 6 should be a raise (6 + 4 = 10)
+            mockRandomInt.mockReturnValueOnce(10).mockReturnValueOnce(3);
+            const parsed = parseTraitExpression("d12 tn6");
+            const result = rollParsedTraitExpression(parsed);
+            // Target 6, raise at 10 (6 + 4), not at 8
+            expect(result.traitDieResult.state).toBe(ExpressionState.Raise);
+            expect(result.traitDieResult.finalTotal).toBe(10);
+        });
+        it("should not raise when exactly 4 below threshold (TN 6)", () => {
+            // Roll 8 with target 6 should be success but not raise (need 10 for raise)
+            mockRandomInt.mockReturnValueOnce(8).mockReturnValueOnce(3);
+            const parsed = parseTraitExpression("d10 tn6");
+            const result = rollParsedTraitExpression(parsed);
+            // Target 6, need 10 for raise, got 8
+            expect(result.traitDieResult.state).toBe(ExpressionState.Success);
+            expect(result.traitDieResult.finalTotal).toBe(8);
+        });
+        it("should calculate raises relative to target number (TN 10)", () => {
+            // Roll 14 with target 10 should be a raise (10 + 4 = 14)
+            mockRandomInt
+                .mockReturnValueOnce(10)
+                .mockReturnValueOnce(4) // trait: 10 + 4 = 14
+                .mockReturnValueOnce(3); // wild: 3
+            const parsed = parseTraitExpression("d10 tn10");
+            const result = rollParsedTraitExpression(parsed);
+            // Target 10, raise at 14 (10 + 4), not at 8
+            expect(result.traitDieResult.state).toBe(ExpressionState.Raise);
+            expect(result.traitDieResult.finalTotal).toBe(14);
+        });
         it("should determine failure state", () => {
             // Rolls to 3, target 6 = failure
             mockRandomInt.mockReturnValueOnce(2).mockReturnValueOnce(3);

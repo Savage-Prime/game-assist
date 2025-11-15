@@ -119,6 +119,15 @@ describe("parseRollExpression", () => {
             const result = parseRollExpression("2d6 tn8");
             expect(result.targetNumber).toBe(8);
         });
+        it("should parse target number with shorthand 't'", () => {
+            const result = parseRollExpression("2d6 t8");
+            expect(result.targetNumber).toBe(8);
+        });
+        it("should treat 't' and 'tn' as equivalent", () => {
+            const resultTn = parseRollExpression("2d6 tn8");
+            const resultT = parseRollExpression("2d6 t8");
+            expect(resultTn.targetNumber).toBe(resultT.targetNumber);
+        });
         it("should parse global modifier with parentheses", () => {
             const result = parseRollExpression("2d6 (+3)");
             expect(result.globalModifier).toBe(3);
@@ -133,6 +142,11 @@ describe("parseRollExpression", () => {
         });
         it("should parse both target number and global modifier", () => {
             const result = parseRollExpression("2d6 tn8 (+2)");
+            expect(result.targetNumber).toBe(8);
+            expect(result.globalModifier).toBe(2);
+        });
+        it("should parse target number shorthand with global modifier", () => {
+            const result = parseRollExpression("2d6 t8 (+2)");
             expect(result.targetNumber).toBe(8);
             expect(result.globalModifier).toBe(2);
         });
@@ -230,8 +244,30 @@ describe("parseTraitExpression", () => {
             const result = parseTraitExpression("d8 tn6");
             expect(result.targetNumber).toBe(6);
         });
+        it("should parse target number with shorthand 't'", () => {
+            const result = parseTraitExpression("d8 t6");
+            expect(result.targetNumber).toBe(6);
+        });
+        it("should treat 't' and 'tn' as equivalent in trait expressions", () => {
+            const resultTn = parseTraitExpression("d8 tn6");
+            const resultT = parseTraitExpression("d8 t6");
+            expect(resultTn.targetNumber).toBe(resultT.targetNumber);
+        });
         it("should parse target highest", () => {
             const result = parseTraitExpression("d8 th2");
+            expect(result.targetHighest).toBe(2);
+        });
+        it("should distinguish between 't' (target number) and 'th' (target highest)", () => {
+            const resultT = parseTraitExpression("d8 t6");
+            const resultTh = parseTraitExpression("d8 th2");
+            expect(resultT.targetNumber).toBe(6);
+            expect(resultT.targetHighest).toBe(1); // default
+            expect(resultTh.targetNumber).toBe(4); // default
+            expect(resultTh.targetHighest).toBe(2);
+        });
+        it("should parse both target number shorthand and target highest", () => {
+            const result = parseTraitExpression("d8 t6 th2");
+            expect(result.targetNumber).toBe(6);
             expect(result.targetHighest).toBe(2);
         });
     });
