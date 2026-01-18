@@ -82,7 +82,7 @@ describe("Username display in responses", () => {
 
 			const result = formatRollResult(mockResult, createMockUserContext("TestUser"));
 			expect(result).toContain("**TestUser**");
-			expect(result).toContain("*rolled 2d6+3*");
+			expect(result).toContain("rolled 2d6+3");
 		});
 
 		it("should work without username", () => {
@@ -116,8 +116,8 @@ describe("Username display in responses", () => {
 			const result = formatRollResult(mockResult, createMockUserContext("User"));
 			// Should have username in bold in the header
 			expect(result).toMatch(/\*\*User\*\*/);
-			// Should have the roll expression (in the header, in italics)
-			expect(result).toContain("*rolled 1d6*");
+			// Should have the roll expression in plaintext
+			expect(result).toContain("rolled 1d6");
 			// Should have the result in bold
 			expect(result).toContain("**4**");
 		});
@@ -151,7 +151,7 @@ describe("Username display in responses", () => {
 
 			const result = formatTraitResult(mockResult, createMockUserContext("PlayerName"));
 			expect(result).toContain("**PlayerName**");
-			expect(result).toContain("*rolled trait d8+2*");
+			expect(result).toContain("rolled trait d8+2");
 		});
 
 		it("should work without username", () => {
@@ -180,9 +180,9 @@ describe("Username display in responses", () => {
 
 			const result = formatTraitResult(mockResult, createMockUserContext("User"));
 			// Should have username in bold in the header
-			expect(result).toMatch(/\*\*User\*\* \*rolled trait/);
+			expect(result).toMatch(/\*\*User\*\* rolled trait/);
 			// Should have the roll expression (in the header, in italics)
-			expect(result).toContain("*rolled trait d8*");
+			expect(result).toContain("rolled trait d8");
 			// Should have the results in bold
 			expect(result).toContain("**5**");
 		});

@@ -125,6 +125,10 @@ The `/roll` command supports a powerful and flexible dice notation system:
 - `2d6 (+3)` - Roll 2d6 and add 3 to the total result
 - `1d20 (-2)` - Roll 1d20 and subtract 2 from the total result
 
+### Comments
+- `2d6 "attack roll"` - Add a comment that displays in italics in the output
+- `1d20+5 "stealth check"` - Comments can appear anywhere in the expression
+
 ### Repetition
 - `2d6 x3` - Repeat the expression 3 times (equivalent to `2d6, 2d6, 2d6`)
 - `1d20+5 x2` - Repeat the entire expression 2 times
@@ -194,6 +198,7 @@ The `/trait` command implements Savage Worlds trait roll mechanics with a trait 
 - **Trait Die**: `d4`, `d6`, `d8`, `d10`, `d12` - Player's skill/attribute die
 - **Wild Die**: `wd6` (default), `wd8`, `wd10`, etc. - Usually d6, can be overridden
 - **Global Modifier**: `+1`, `(-2)` - Applied to both dice totals
+- **Comments**: `"text"` - Add a comment that displays in italics (e.g., `d8 "fighting"`)
 - **Target Number**: `tn4` or `t4` (default TN 4), `tn6`, `t8` - Difficulty threshold (`t` and `tn` are equivalent)
 - **Target Highest**: Always `th1` (hardcoded, compares trait die vs wild die to keep the higher result)
 

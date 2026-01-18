@@ -51,6 +51,7 @@ export interface RollSpecification {
 	targetHighest?: number;
 	globalModifier?: number;
 	rawExpression?: string;
+	comment?: string;
 	validationMessages: string[];
 }
 
@@ -61,6 +62,7 @@ export interface TraitSpecification {
 	targetHighest?: number;
 	globalModifier?: number;
 	rawExpression?: string;
+	comment?: string;
 	validationMessages: string[];
 }
 
@@ -90,6 +92,7 @@ export interface RollOutcome {
 	targetNumber?: number;
 	globalModifier?: number;
 	rawExpression?: string;
+	comment?: string;
 	details: StandardRollDetails | TraitRollDetails;
 }
 

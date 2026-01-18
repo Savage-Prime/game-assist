@@ -162,6 +162,9 @@ export async function rollParsedExpression(parsed: RollSpecification, rawExpress
 	if (rawExpression !== undefined) {
 		result.rawExpression = rawExpression;
 	}
+	if (parsed.comment !== undefined) {
+		result.comment = parsed.comment;
+	}
 
 	// Roll all expressions in parallel
 	const expressionResults = await Promise.all(
@@ -302,5 +305,6 @@ export function rollParsedTraitExpression(parsed: TraitSpecification, rawExpress
 		...(parsed.targetNumber !== undefined && { targetNumber: parsed.targetNumber }),
 		...(parsed.globalModifier !== undefined && { globalModifier: parsed.globalModifier }),
 		...(rawExpression !== undefined && { rawExpression }),
+		...(parsed.comment !== undefined && { comment: parsed.comment }),
 	};
 }
