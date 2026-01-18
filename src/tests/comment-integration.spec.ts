@@ -29,16 +29,22 @@ describe("Comment feature integration", () => {
 			// Parse expression with comment
 			const parsed = parseRollExpression('2d6 "attack roll"');
 			expect(parsed.comment).toBe("attack roll");
+			expect(parsed.rawExpression).toBe("2d6"); // Should NOT include comment
 
 			// Execute the roll
 			const result = await rollParsedExpression(parsed, "2d6");
 
+			// Verify result has comment but rawExpression doesn't include it
+			expect(result.comment).toBe("attack roll");
+			expect(result.rawExpression).toBe("2d6");
+
 			// Format the result
 			const formatted = formatRollResult(result, mockUserContext);
 
-			// Verify the formatted output contains the comment
+			// Verify the formatted output contains the comment only once
 			expect(formatted).toContain("*attack roll*");
 			expect(formatted).toContain("rolled 2d6");
+			expect(formatted).not.toContain('"attack roll"');
 			expect(formatted).toContain("**9**");
 		});
 
@@ -48,12 +54,14 @@ describe("Comment feature integration", () => {
 			const parsed = parseRollExpression('2d6 t8 "difficult shot"');
 			expect(parsed.comment).toBe("difficult shot");
 			expect(parsed.targetNumber).toBe(8);
+			expect(parsed.rawExpression).toBe("2d6 t8"); // Should NOT include comment
 
 			const result = await rollParsedExpression(parsed, "2d6 t8");
 			const formatted = formatRollResult(result, mockUserContext);
 
 			expect(formatted).toContain("*difficult shot*");
 			expect(formatted).toContain("rolled 2d6 t8");
+			expect(formatted).not.toContain('"difficult shot"');
 			expect(formatted).toContain("success");
 		});
 	});
@@ -68,16 +76,22 @@ describe("Comment feature integration", () => {
 			// Parse expression with comment
 			const parsed = parseTraitExpression('d8 "fighting skill"');
 			expect(parsed.comment).toBe("fighting skill");
+			expect(parsed.rawExpression).toBe("d8"); // Should NOT include comment
 
 			// Execute the roll
 			const result = rollParsedTraitExpression(parsed, "d8");
 
+			// Verify result
+			expect(result.comment).toBe("fighting skill");
+			expect(result.rawExpression).toBe("d8");
+
 			// Format the result
 			const formatted = formatTraitResult(result, mockUserContext);
 
-			// Verify the formatted output contains the comment
+			// Verify the formatted output contains the comment only once
 			expect(formatted).toContain("*fighting skill*");
 			expect(formatted).toContain("rolled trait d8");
+			expect(formatted).not.toContain('"fighting skill"');
 			expect(formatted).toContain("Trait Die: 1d8");
 			expect(formatted).toContain("Wild Die: 1d6");
 		});
@@ -90,12 +104,14 @@ describe("Comment feature integration", () => {
 			expect(parsed.comment).toBe("shooting");
 			expect(parsed.traitDie.sides).toBe(10);
 			expect(parsed.wildDie.sides).toBe(6);
+			expect(parsed.rawExpression).toBe("d10 wd6"); // Should NOT include comment
 
 			const result = rollParsedTraitExpression(parsed, "d10 wd6");
 			const formatted = formatTraitResult(result, mockUserContext);
 
 			expect(formatted).toContain("*shooting*");
 			expect(formatted).toContain("rolled trait d10 wd6");
+			expect(formatted).not.toContain('"shooting"');
 			expect(formatted).toContain("1d10");
 			expect(formatted).toContain("1d6");
 		});

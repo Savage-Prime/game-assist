@@ -159,7 +159,10 @@ export async function rollParsedExpression(parsed: RollSpecification, rawExpress
 	if (parsed.globalModifier !== undefined) {
 		result.globalModifier = parsed.globalModifier;
 	}
-	if (rawExpression !== undefined) {
+	// Prefer rawExpression from parsed data (which has comment removed)
+	if (parsed.rawExpression !== undefined) {
+		result.rawExpression = parsed.rawExpression;
+	} else if (rawExpression !== undefined) {
 		result.rawExpression = rawExpression;
 	}
 	if (parsed.comment !== undefined) {
@@ -304,7 +307,8 @@ export function rollParsedTraitExpression(parsed: TraitSpecification, rawExpress
 		grandTotal: finalTotal,
 		...(parsed.targetNumber !== undefined && { targetNumber: parsed.targetNumber }),
 		...(parsed.globalModifier !== undefined && { globalModifier: parsed.globalModifier }),
-		...(rawExpression !== undefined && { rawExpression }),
+		...(parsed.rawExpression !== undefined && { rawExpression: parsed.rawExpression }),
+		...(rawExpression !== undefined && !parsed.rawExpression && { rawExpression }),
 		...(parsed.comment !== undefined && { comment: parsed.comment }),
 	};
 }
