@@ -40,10 +40,18 @@ function removeTargetHighest(expression) {
     return expression.replace(/th\d+/, "");
 }
 export function parseRollExpression(expression) {
+    // Extract comment if present (double-quoted string)
+    let comment;
+    const commentMatch = expression.match(/"([^"]*)"/);
+    if (commentMatch && commentMatch[1] && commentMatch[1].trim() !== "") {
+        comment = commentMatch[1];
+    }
+    // Remove comment from expression before further processing
+    const expressionWithoutComment = expression.replace(/"[^"]*"/, "");
     // Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
     // The x pattern can appear anywhere in the expression since order doesn't matter
     let repetitionCount = 1;
-    const xMatch = expression.toLowerCase().match(/\s*x\s*(\d*)/);
+    const xMatch = expressionWithoutComment.toLowerCase().match(/\s*x\s*(\d*)/);
     if (xMatch) {
         const countStr = xMatch[1];
         if (countStr === "" || countStr === undefined) {
@@ -57,11 +65,16 @@ export function parseRollExpression(expression) {
         }
     }
     // Remove the x pattern from the expression before further processing
-    let expressionWithoutX = expression.replace(/\s*x\s*\d*/i, "");
+    let expressionWithoutX = expressionWithoutComment.replace(/\s*x\s*\d*/i, "");
     // Clean up the expression
     const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();
     // Initialize result
     const result = { expressions: [], validationMessages: [] };
+    if (comment) {
+        result.comment = comment;
+    }
+    // Store the expression without comment for display
+    result.rawExpression = expressionWithoutComment.trim();
     // Helper function to add validation messages
     const addValidationMessage = (message, details) => {
         result.validationMessages.push(message);
@@ -308,8 +321,16 @@ function parseDiceGroup(part, addValidationMessage) {
     return null;
 }
 export function parseTraitExpression(expression) {
+    // Extract comment if present (double-quoted string)
+    let comment;
+    const commentMatch = expression.match(/"([^"]*)"/);
+    if (commentMatch && commentMatch[1] && commentMatch[1].trim() !== "") {
+        comment = commentMatch[1];
+    }
+    // Remove comment from expression before further processing
+    const expressionWithoutComment = expression.replace(/"[^"]*"/, "");
     // Clean up the expression
-    const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
+    const cleanExpression = expressionWithoutComment.replace(/\s+/g, "").toLowerCase();
     // Initialize result with defaults
     const result = {
         traitDie: { quantity: 1, sides: DEFAULTS.TRAIT_DIE_SIDES }, // default d4
@@ -318,6 +339,11 @@ export function parseTraitExpression(expression) {
         targetNumber: DEFAULTS.TRAIT_TARGET_NUMBER, // default target number for trait rolls
         validationMessages: [],
     };
+    if (comment) {
+        result.comment = comment;
+    }
+    // Store the expression without comment for display
+    result.rawExpression = expressionWithoutComment.trim();
     // Helper function to add validation messages
     const addValidationMessage = (message, details) => {
         result.validationMessages.push(message);

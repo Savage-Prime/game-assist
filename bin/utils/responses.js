@@ -97,7 +97,11 @@ export function formatRollResult(result, userContext) {
     let response = "";
     // Add header with username and raw expression
     if (result.rawExpression) {
-        response += `> 🎲 **${userContext.markdownSafeName}** *rolled ${result.rawExpression}*\n`;
+        response += `> 🎲 **${userContext.markdownSafeName}** rolled ${result.rawExpression}`;
+        if (result.comment) {
+            response += ` *${result.comment}*`;
+        }
+        response += "\n";
     }
     // Add results without quote formatting (bright)
     response += expressionLines.join("\n");
@@ -122,7 +126,11 @@ export function formatTraitResult(result, userContext) {
     // Build the original expression for display
     let originalExpression = "";
     if (result.rawExpression) {
-        originalExpression = `> 🎲 **${userContext.markdownSafeName}** *rolled trait ${result.rawExpression}*\n`;
+        originalExpression = `> 🎲 **${userContext.markdownSafeName}** rolled trait ${result.rawExpression}`;
+        if (result.comment) {
+            originalExpression += ` *${result.comment}*`;
+        }
+        originalExpression += "\n";
     }
     // Helper function to format dice rolls for display
     const formatRolls = (rolls) => {
