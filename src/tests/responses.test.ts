@@ -550,7 +550,7 @@ describe("formatRollResult", () => {
 			};
 
 			const result = formatRollResult(mockResult, createMockUserContext());
-			expect(result).toBe("> 🎲 **TestUser** *rolled 2d6*\n2d6 [4, 5] = **9**");
+			expect(result).toBe("> 🎲 **TestUser** rolled 2d6\n2d6 [4, 5] = **9**");
 		});
 	});
 });

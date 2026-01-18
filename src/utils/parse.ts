@@ -46,10 +46,19 @@ function removeTargetHighest(expression: string): string {
 }
 
 export function parseRollExpression(expression: string): RollSpecification {
+	// Extract comment if present (double-quoted string)
+	let comment: string | undefined;
+	const commentMatch = expression.match(/"([^"]*)"/);
+	if (commentMatch && commentMatch[1] && commentMatch[1].trim() !== "") {
+		comment = commentMatch[1];
+	}
+	// Remove comment from expression before further processing
+	const expressionWithoutComment = expression.replace(/"[^"]*"/, "");
+
 	// Extract repetition count BEFORE cleaning spaces - need to handle "x 3" vs "x3"
 	// The x pattern can appear anywhere in the expression since order doesn't matter
 	let repetitionCount = 1;
-	const xMatch = expression.toLowerCase().match(/\s*x\s*(\d*)/);
+	const xMatch = expressionWithoutComment.toLowerCase().match(/\s*x\s*(\d*)/);
 	if (xMatch) {
 		const countStr = xMatch[1];
 		if (countStr === "" || countStr === undefined) {
@@ -63,13 +72,16 @@ export function parseRollExpression(expression: string): RollSpecification {
 	}
 
 	// Remove the x pattern from the expression before further processing
-	let expressionWithoutX = expression.replace(/\s*x\s*\d*/i, "");
+	let expressionWithoutX = expressionWithoutComment.replace(/\s*x\s*\d*/i, "");
 
 	// Clean up the expression
 	const cleanExpression = expressionWithoutX.replace(/\s+/g, "").toLowerCase();
 
 	// Initialize result
 	const result: RollSpecification = { expressions: [], validationMessages: [] };
+	if (comment) {
+		result.comment = comment;
+	}
 
 	// Helper function to add validation messages
 	const addValidationMessage = (message: string, details: any) => {
@@ -378,8 +390,17 @@ function parseDiceGroup(part: string, addValidationMessage: (message: string, de
 }
 
 export function parseTraitExpression(expression: string): TraitSpecification {
+	// Extract comment if present (double-quoted string)
+	let comment: string | undefined;
+	const commentMatch = expression.match(/"([^"]*)"/);
+	if (commentMatch && commentMatch[1] && commentMatch[1].trim() !== "") {
+		comment = commentMatch[1];
+	}
+	// Remove comment from expression before further processing
+	const expressionWithoutComment = expression.replace(/"[^"]*"/, "");
+
 	// Clean up the expression
-	const cleanExpression = expression.replace(/\s+/g, "").toLowerCase();
+	const cleanExpression = expressionWithoutComment.replace(/\s+/g, "").toLowerCase();
 
 	// Initialize result with defaults
 	const result: TraitSpecification = {
@@ -389,6 +410,9 @@ export function parseTraitExpression(expression: string): TraitSpecification {
 		targetNumber: DEFAULTS.TRAIT_TARGET_NUMBER, // default target number for trait rolls
 		validationMessages: [],
 	};
+	if (comment) {
+		result.comment = comment;
+	}
 
 	// Helper function to add validation messages
 	const addValidationMessage = (message: string, details?: any) => {

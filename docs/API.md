@@ -187,6 +187,7 @@ Parses a dice expression string into a structured specification.
 **Returns**: `RollSpecification` with validation messages
 
 **Supported Syntax**:
+- Comments: `"text"` - add an optional comment that displays in italics (e.g., `2d6 "attack roll"`)
 - Target Number: `tn<number>` or `t<number>` (e.g., `tn4`, `t6`) - sets the difficulty threshold (`t` and `tn` are equivalent)
 - Target Highest: `th<number>` (e.g., `th2`) - when used with target number, counts only the top N successful expressions
 - Raises: Automatically calculated as target number + 4 (e.g., target 6 requires 10 for a raise)
@@ -224,6 +225,7 @@ Parses a Savage Worlds trait expression.
 **Returns**: `TraitSpecification` with validation messages
 
 **Supported Syntax**:
+- Comments: `"text"` - add an optional comment that displays in italics (e.g., `d8 "fighting"`)
 - Target Number: `tn<number>` or `t<number>` (e.g., `tn4`, `t6`) - sets the difficulty threshold (`t` and `tn` are equivalent)
 - Target Highest: `th1` (default, always 1 for single trait rolls) - compares trait vs wild die to keep highest
 - Raises: Automatically calculated as target number + 4
