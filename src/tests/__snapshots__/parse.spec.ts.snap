@@ -22,6 +22,7 @@ exports[`parser fixture tests > should produce stable output for: basic dice wit
       ],
     },
   ],
+  "rawExpression": "2d6 + 3",
   "validationMessages": [],
 }
 `;
@@ -46,6 +47,7 @@ exports[`parser fixture tests > should produce stable output for: complex dice w
     },
   ],
   "globalModifier": 2,
+  "rawExpression": "4d8! kh3 tn6 (+2)",
   "targetNumber": 6,
   "validationMessages": [],
 }
@@ -66,6 +68,7 @@ exports[`parser fixture tests > should produce stable output for: empty input 1`
       ],
     },
   ],
+  "rawExpression": "",
   "validationMessages": [],
 }
 `;
@@ -73,6 +76,7 @@ exports[`parser fixture tests > should produce stable output for: empty input 1`
 exports[`parser fixture tests > should produce stable output for: invalid input 1`] = `
 {
   "expressions": [],
+  "rawExpression": "invalid expression",
   "validationMessages": [
     "Failed to parse dice group: invalidepression",
   ],
@@ -94,6 +98,7 @@ exports[`parser fixture tests > should produce stable output for: maximum dice q
       ],
     },
   ],
+  "rawExpression": "100d6",
   "validationMessages": [],
 }
 `;
@@ -113,6 +118,7 @@ exports[`parser fixture tests > should produce stable output for: maximum dice s
       ],
     },
   ],
+  "rawExpression": "1d1000",
   "validationMessages": [],
 }
 `;
@@ -187,6 +193,7 @@ exports[`parser fixture tests > should produce stable output for: multiple expre
       ],
     },
   ],
+  "rawExpression": "1d20, 2d6, 3d4 x 2",
   "validationMessages": [],
 }
 `;
@@ -194,6 +201,7 @@ exports[`parser fixture tests > should produce stable output for: multiple expre
 exports[`parser fixture tests > should produce stable output for: trait expression with modifiers 1`] = `
 {
   "globalModifier": 2,
+  "rawExpression": "d8+2 wd6 tn4",
   "targetHighest": 1,
   "targetNumber": 4,
   "traitDie": {

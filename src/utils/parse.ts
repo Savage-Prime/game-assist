@@ -82,6 +82,8 @@ export function parseRollExpression(expression: string): RollSpecification {
 	if (comment) {
 		result.comment = comment;
 	}
+	// Store the expression without comment for display
+	result.rawExpression = expressionWithoutComment.trim();
 
 	// Helper function to add validation messages
 	const addValidationMessage = (message: string, details: any) => {
@@ -413,6 +415,8 @@ export function parseTraitExpression(expression: string): TraitSpecification {
 	if (comment) {
 		result.comment = comment;
 	}
+	// Store the expression without comment for display
+	result.rawExpression = expressionWithoutComment.trim();
 
 	// Helper function to add validation messages
 	const addValidationMessage = (message: string, details?: any) => {
